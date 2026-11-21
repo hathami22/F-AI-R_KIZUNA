@@ -331,20 +331,26 @@ document.addEventListener('DOMContentLoaded', function () {
     const selectedRangeText = document.querySelector('#selected-date-range');
     
     if (datePickerTrigger && selectedRangeText) {
+        const rangeEnd = new Date();
+        const rangeStart = new Date(rangeEnd);
+        rangeStart.setDate(rangeStart.getDate() - 6);
+
+        const updateSelectedRange = function (selectedDates, dateStr, instance) {
+            if (selectedDates.length === 2) {
+                const startStr = instance.formatDate(selectedDates[0], 'F j, Y');
+                const endStr = instance.formatDate(selectedDates[1], 'F j, Y');
+                selectedRangeText.textContent = `${startStr} - ${endStr}`;
+            } else if (selectedDates.length === 1) {
+                selectedRangeText.textContent = instance.formatDate(selectedDates[0], 'F j, Y');
+            }
+        };
+
         flatpickr(datePickerTrigger, {
             mode: 'range',
             dateFormat: 'Y-m-d',
-            defaultDate: ['2026-01-12', '2026-01-23'],
-            onValueUpdate: function (selectedDates, dateStr, instance) {
-                if (selectedDates.length === 2) {
-                    const startStr = instance.formatDate(selectedDates[0], 'F j, Y');
-                    const endStr = instance.formatDate(selectedDates[1], 'F j, Y');
-                    selectedRangeText.textContent = `${startStr} - ${endStr}`;
-                } else if (selectedDates.length === 1) {
-                    const startStr = instance.formatDate(selectedDates[0], 'F j, Y');
-                    selectedRangeText.textContent = startStr;
-                }
-            }
+            defaultDate: [rangeStart, rangeEnd],
+            onReady: updateSelectedRange,
+            onValueUpdate: updateSelectedRange
         });
     }
 

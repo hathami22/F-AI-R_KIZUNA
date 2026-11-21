@@ -61,6 +61,12 @@
             </a>
           </li>
           <li class="sidebar-menu-item">
+            <a href="field-data.html" class="sidebar-menu-link" id="menu-fielddata" title="Field Data">
+              <i class="bi bi-geo-alt-fill"></i>
+              <span>Field Data</span>
+            </a>
+          </li>
+          <li class="sidebar-menu-item">
             <a href="ui-forms.html" class="sidebar-menu-link" id="menu-uiforms" title="Forms and Input">
               <i class="bi bi-input-cursor-text"></i>
               <span>Forms & Input</span>
@@ -180,41 +186,10 @@
               <h6 class="notification-title">Notifications</h6>
               <button class="btn-clear-all" type="button">Mark all read</button>
             </div>
-            <div class="notification-list">
-              <!-- Sale Notification -->
-              <a href="#" class="notification-item">
-                <div class="notification-icon bg-success text-white">
-                  <i class="bi bi-wallet2"></i>
-                </div>
-                <div class="notification-content">
-                  <p class="notification-text">New sale received: <strong>$150.00</strong></p>
-                  <span class="notification-time">2 mins ago</span>
-                </div>
-                <span class="notification-unread-dot"></span>
-              </a>
-              <!-- User Registration Notification -->
-              <a href="#" class="notification-item">
-                <div class="notification-icon bg-primary text-white">
-                  <i class="bi bi-person-plus-fill"></i>
-                </div>
-                <div class="notification-content">
-                  <p class="notification-text">New user registered: <strong>John Doe</strong></p>
-                  <span class="notification-time">1 hour ago</span>
-                </div>
-                <span class="notification-unread-dot"></span>
-              </a>
-              <!-- Low Stock Notification -->
-              <a href="#" class="notification-item">
-                <div class="notification-icon bg-warning text-dark">
-                  <i class="bi bi-box-seam-fill"></i>
-                </div>
-                <div class="notification-content">
-                  <p class="notification-text">Stock running low: <strong>Hoodie</strong></p>
-                  <span class="notification-time">3 hours ago</span>
-                </div>
-              </a>
+            <div class="notification-list" id="field-notifications">
+              <p class="notification-text px-3 py-2 mb-0">Loading field alerts...</p>
             </div>
-            <a href="#" class="notification-footer">View All Notifications</a>
+            <a href="ui-buttons.html#dataset-alerts" class="notification-footer">View All Field Alerts</a>
           </div>
         </div>
 
@@ -246,18 +221,20 @@
     <div class="page-header">
       <div>
         <h1 class="page-title">Dashboard</h1>
-        <p class="page-subtitle">An easy way to manage sales with care and precision.</p>
+        <p class="page-subtitle">Field operations overview from the supplied simulated survey data.</p>
       </div>
       <button class="btn-date-picker" type="button" id="date-picker-trigger">
         <i class="bi bi-calendar4-event"></i>
-        <span id="selected-date-range">January 12, 2026 - January 23, 2026</span>
+        <span id="selected-date-range">Select reporting dates</span>
         <i class="bi bi-chevron-down ms-1"></i>
       </button>
     </div>
+    <p class="small text-muted-green mb-3">The survey files contain elapsed seconds, not calendar dates; this picker selects a reporting period only.</p>
+    <div id="field-data-error" class="alert alert-danger dataset-error" role="alert" hidden></div>
     <!-- END: Dashboard Header Banner -->
 
     <!-- START: Main Layout Grid (2 Columns: Dashboard + Performance Pane) -->
-    <div class="row g-4">
+    <div class="row g-4" id="field-dashboard">
 
       <!-- TOP AREA: Quick Info Stat Cards Row (Full Width) -->
       <div class="col-12">
@@ -266,12 +243,12 @@
           <div class="col-md-4">
             <div class="card alert-green-card">
               <div class="position-relative z-index-2">
-                <span class="alert-green-badge">Update</span>
-                <div class="alert-green-date">Feb 14th 2026</div>
-                <div class="alert-green-text">Sales revenue increased 40% in 1 week</div>
+                <span class="alert-green-badge">Field status</span>
+                <div class="alert-green-date" id="survey-route-summary">Loading route summary...</div>
+                <div class="alert-green-text" id="survey-detection-summary">Loading survey summary...</div>
               </div>
-              <a href="#" class="alert-green-link z-index-2" id="alert-link-statistics">
-                <span>See Statistics</span>
+              <a href="field-data.html" class="alert-green-link z-index-2" id="alert-link-statistics">
+                <span>Explore field data</span>
                 <i class="bi bi-arrow-right"></i>
               </a>
 
@@ -286,12 +263,12 @@
             </div>
           </div>
 
-          <!-- Stat Card 2: Net Income -->
+          <!-- Field KPI: detections -->
           <div class="col-md-4">
             <div class="card card-stat d-flex flex-column justify-content-between">
               <div>
                 <div class="card-header">
-                  <span class="stat-label">Net Income</span>
+                  <span class="stat-label">Weed Detections</span>
                   <div class="dropdown">
                     <button class="card-more-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false"
                       aria-label="More Options" id="btn-more-income">
@@ -309,24 +286,24 @@
                     </ul>
                   </div>
                 </div>
-                <div class="stat-value">$196.000</div>
+                <div class="stat-value" id="stat-detections-value">—</div>
                 <div class="trend-badge trend-up">
                   <i class="bi bi-arrow-up-right"></i>
-                  <span>+35% from last month</span>
+                  <span id="stat-detections-detail">Loading observations...</span>
                 </div>
               </div>
               <div class="sparkline-container sparkline-card-footer">
-                <div id="income-sparkline"></div>
+                <div id="detections-sparkline"></div>
               </div>
             </div>
           </div>
 
-          <!-- Stat Card 3: Total Return -->
+          <!-- Field KPI: route distance -->
           <div class="col-md-4">
             <div class="card card-stat d-flex flex-column justify-content-between">
               <div>
                 <div class="card-header">
-                  <span class="stat-label">Total Return</span>
+                  <span class="stat-label">Route Distance</span>
                   <div class="dropdown">
                     <button class="card-more-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false"
                       aria-label="More Options" id="btn-more-return">
@@ -344,14 +321,14 @@
                     </ul>
                   </div>
                 </div>
-                <div class="stat-value">$32.000</div>
-                <div class="trend-badge trend-down">
-                  <i class="bi bi-arrow-down-left"></i>
-                  <span>-24% from last month</span>
+                <div class="stat-value" id="stat-distance-value">—</div>
+                <div class="trend-badge trend-up">
+                  <i class="bi bi-arrow-up-right"></i>
+                  <span id="stat-distance-detail">Loading route...</span>
                 </div>
               </div>
               <div class="sparkline-container sparkline-card-footer">
-                <div id="return-sparkline"></div>
+                <div id="speed-sparkline"></div>
               </div>
             </div>
           </div>
@@ -362,38 +339,42 @@
       <!-- LEFT AREA: Primary Dashboard Stats & Tables -->
       <div class="col-xl-9 col-lg-8">
 
-        <!-- START: Details Area (Transactions + Performance Charts) -->
+        <!-- START: Field Detection and Route Summary -->
         <div class="row g-4">
-          <!-- Column: Revenue Chart (Full Width / Wider) -->
+          <!-- Column: Detection outcomes by species -->
           <div class="col-12">
             <div class="card mb-0">
               <div class="card-header mb-2">
-                <h2 class="card-title">Revenue</h2>
+                <h2 class="card-title">Treatment Outcomes by Species</h2>
                 <!-- Custom Static Legends -->
                 <div class="d-flex gap-3 align-items-center">
                   <div class="chart-legend-item">
                     <span class="legend-dot bg-forest-medium"></span>
-                    <span class="chart-legend-label">Income</span>
+                    <span class="chart-legend-label">Treated</span>
                   </div>
                   <div class="chart-legend-item">
                     <span class="legend-dot bg-lime-accent"></span>
-                    <span class="chart-legend-label">Expenses</span>
+                    <span class="chart-legend-label">Crop protected</span>
+                  </div>
+                  <div class="chart-legend-item">
+                    <span class="legend-dot bg-brand-orange"></span>
+                    <span class="chart-legend-label">Missed</span>
                   </div>
                 </div>
               </div>
               <div class="d-flex align-items-baseline gap-2 mb-3">
-                <span class="stat-value-amount">$196.000</span>
-                <span class="trend-badge trend-up fs-xs">+35% from last month</span>
+                <span class="stat-value-amount" id="field-detection-total">—</span>
+                <span class="trend-badge trend-up fs-xs">total observations</span>
               </div>
-              <div id="revenue-chart"></div>
+              <div id="treatment-chart"></div>
             </div>
           </div>
 
-          <!-- Column: Transaction List -->
+          <!-- Column: Recent detections -->
           <div class="col-md-7 d-flex flex-column">
             <div class="card h-100 flex-grow-1">
               <div class="card-header">
-                <h2 class="card-title">Transaction</h2>
+                <h2 class="card-title">Recent Detections</h2>
                 <div class="dropdown">
                   <button class="card-more-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false"
                     aria-label="More Options" id="btn-more-transaction">
@@ -407,136 +388,60 @@
                 </div>
               </div>
 
-              <!-- Transaction Items List -->
-              <div class="transaction-list">
-                <div class="transaction-item">
-                  <div class="transaction-icon bg-forest-light text-lime">
-                    <i class="bi bi-spotify"></i>
-                  </div>
-                  <div class="transaction-info">
-                    <div class="transaction-name">Spotify Subscription</div>
-                    <div class="transaction-date">Feb 14, 2026 • 12:40 PM</div>
-                  </div>
-                  <div class="transaction-amount text-main">-$15.00</div>
-                </div>
-
-                <div class="transaction-item">
-                  <div class="transaction-icon bg-forest-light text-lime">
-                    <i class="bi bi-paypal"></i>
-                  </div>
-                  <div class="transaction-info">
-                    <div class="transaction-name">Paypal Transfer</div>
-                    <div class="transaction-date">Feb 13, 2026 • 08:15 AM</div>
-                  </div>
-                  <div class="transaction-amount text-success">+$1,250.00</div>
-                </div>
-
-                <div class="transaction-item">
-                  <div class="transaction-icon bg-forest-light text-lime">
-                    <i class="bi bi-stripe"></i>
-                  </div>
-                  <div class="transaction-info">
-                    <div class="transaction-name">Stripe Payout</div>
-                    <div class="transaction-date">Feb 11, 2026 • 04:30 PM</div>
-                  </div>
-                  <div class="transaction-amount text-success">+$3,400.00</div>
-                </div>
-
-                <div class="transaction-item">
-                  <div class="transaction-icon bg-forest-light text-lime">
-                    <i class="bi bi-slack"></i>
-                  </div>
-                  <div class="transaction-info">
-                    <div class="transaction-name">Slack Pro Workspace</div>
-                    <div class="transaction-date">Feb 09, 2026 • 09:20 AM</div>
-                  </div>
-                  <div class="transaction-amount text-main">-$45.00</div>
-                </div>
+              <div class="transaction-list" id="recent-detections">
+                <p class="text-muted-green px-2">Loading detection records...</p>
               </div>
 
             </div>
           </div>
 
-          <!-- Column: Product Overview Progress -->
+          <!-- Column: Field Overview Statistics -->
           <div class="col-md-5 d-flex flex-column">
             <div class="card h-100 flex-grow-1">
               <div class="card-header">
-                <h2 class="card-title">Product Overview</h2>
+                <h2 class="card-title">Field Overview</h2>
                 <div class="dropdown">
                   <button class="card-more-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false"
                     aria-label="More Options" id="btn-more-products">
                     <i class="bi bi-three-dots"></i>
                   </button>
                   <ul class="dropdown-menu dropdown-menu-end dropdown-menu-custom">
-                    <li><a class="dropdown-item" href="#"><i class="bi bi-plus-lg"></i> Add Product</a></li>
-                    <li><a class="dropdown-item" href="#"><i class="bi bi-gear"></i> Manage</a></li>
+                    <li><a class="dropdown-item" href="ui-forms.html"><i class="bi bi-funnel"></i> Filter Survey</a></li>
+                    <li><a class="dropdown-item" href="field-data.html"><i class="bi bi-table"></i> View Records</a></li>
                   </ul>
                 </div>
               </div>
 
-              <div class="progress-container">
-                <div class="progress-label-row">
-                  <span class="progress-label">Product Launched</span>
-                  <span class="progress-value">233</span>
+              <div class="field-stats-grid">
+                <div class="field-stat-tile">
+                  <span class="field-stat-label">Treated</span>
+                  <strong class="field-stat-value" id="field-treated-count">—</strong>
+                  <small>detections</small>
                 </div>
-                <div class="progress" role="progressbar" aria-label="Product Launched Progress" aria-valuenow="65"
-                  aria-valuemin="0" aria-valuemax="100">
-                  <div class="progress-bar bg-lime-accent w-65"></div>
+                <div class="field-stat-tile">
+                  <span class="field-stat-label">Crop protected</span>
+                  <strong class="field-stat-value" id="field-protected-count">—</strong>
+                  <small>detections</small>
                 </div>
-              </div>
-
-              <div class="progress-container">
-                <div class="progress-label-row">
-                  <span class="progress-label">Ongoing Product</span>
-                  <span class="progress-value">23</span>
+                <div class="field-stat-tile">
+                  <span class="field-stat-label">Missed</span>
+                  <strong class="field-stat-value" id="field-missed-count">—</strong>
+                  <small>detections</small>
                 </div>
-                <div class="progress" role="progressbar" aria-label="Ongoing Product Progress" aria-valuenow="20"
-                  aria-valuemin="0" aria-valuemax="100">
-                  <div class="progress-bar bg-lime-accent opacity-50 w-50"></div>
+                <div class="field-stat-tile">
+                  <span class="field-stat-label">Surveyed area</span>
+                  <strong class="field-stat-value" id="field-surveyed-area">—</strong>
+                  <small>square meters</small>
                 </div>
-              </div>
-
-              <div class="progress-container">
-                <div class="progress-label-row">
-                  <span class="progress-label">Product Sold</span>
-                  <span class="progress-value">482</span>
+                <div class="field-stat-tile">
+                  <span class="field-stat-label">Route points</span>
+                  <strong class="field-stat-value" id="field-route-points">—</strong>
+                  <small>GPS samples</small>
                 </div>
-                <div class="progress" role="progressbar" aria-label="Product Sold Progress" aria-valuenow="85"
-                  aria-valuemin="0" aria-valuemax="100">
-                  <div class="progress-bar bg-lime-accent w-85"></div>
-                </div>
-              </div>
-
-              <div class="progress-container">
-                <div class="progress-label-row">
-                  <span class="progress-label">Product Returned</span>
-                  <span class="progress-value">8</span>
-                </div>
-                <div class="progress" role="progressbar" aria-label="Product Returned Progress" aria-valuenow="10"
-                  aria-valuemin="0" aria-valuemax="100">
-                  <div class="progress-bar bg-brand-orange w-38"></div>
-                </div>
-              </div>
-
-              <div class="progress-container">
-                <div class="progress-label-row">
-                  <span class="progress-label">Product In Stock</span>
-                  <span class="progress-value">1,420</span>
-                </div>
-                <div class="progress" role="progressbar" aria-label="Product In Stock Progress" aria-valuenow="75"
-                  aria-valuemin="0" aria-valuemax="100">
-                  <div class="progress-bar bg-lime-accent w-75"></div>
-                </div>
-              </div>
-
-              <div class="progress-container">
-                <div class="progress-label-row">
-                  <span class="progress-label">Pending Shipment</span>
-                  <span class="progress-value">64</span>
-                </div>
-                <div class="progress" role="progressbar" aria-label="Pending Shipment Progress" aria-valuenow="45"
-                  aria-valuemin="0" aria-valuemax="100">
-                  <div class="progress-bar bg-lime-accent opacity-50 w-45"></div>
+                <div class="field-stat-tile">
+                  <span class="field-stat-label">Peak density</span>
+                  <strong class="field-stat-value" id="field-peak-density">—</strong>
+                  <small>weeds per m²</small>
                 </div>
               </div>
             </div>
@@ -554,24 +459,24 @@
           <!-- Performance Donut Chart card -->
           <div class="card flex-grow-1 d-flex flex-column justify-content-between mb-0">
             <div class="card-header mb-1">
-              <h2 class="card-title">Total View Performance</h2>
+              <h2 class="card-title">Detection Outcomes</h2>
             </div>
 
-            <div id="views-chart"></div>
+            <div id="outcomes-chart"></div>
 
             <!-- Custom Legends below the chart -->
             <div class="chart-legends-container">
               <div class="chart-legend-item">
                 <span class="legend-dot bg-lime-accent"></span>
-                <span class="text-muted-green">View Count</span>
+                <span class="text-muted-green">Treated</span>
               </div>
               <div class="chart-legend-item">
                 <span class="legend-dot bg-forest-medium"></span>
-                <span class="text-muted-green">Percentage</span>
+                <span class="text-muted-green">Crop protected</span>
               </div>
               <div class="chart-legend-item">
                 <span class="legend-dot bg-brand-orange"></span>
-                <span class="text-muted-green">Sales</span>
+                <span class="text-muted-green">Missed</span>
               </div>
             </div>
           </div>
@@ -587,9 +492,9 @@
               </g>
             </svg>
 
-            <h3 class="promo-title">Level up your sales managing to the next level.</h3>
-            <p class="promo-desc">An easy way to manage sales with care and precision.</p>
-            <button class="btn-promo" id="btn-promo-action">Check the updates now</button>
+            <h3 class="promo-title">Explore the surveyed field</h3>
+            <p class="promo-desc" id="field-survey-summary">Density and route data are loading.</p>
+            <a href="field-data.html" class="btn-promo text-decoration-none">View survey tables</a>
           </div>
         </div>
       </div>
@@ -630,8 +535,11 @@
   <script src="assets/libs/apexcharts/apexcharts.min.js"></script>
   <script src="assets/libs/flatpickr/flatpickr.min.js"></script>
 
+  <script src="assets/js/field-data.js"></script>
+  <script src="assets/js/field-ui.js"></script>
   <!-- Local dashboard interactions controller -->
   <script src="assets/js/dashboard.js"></script>
+  <script src="assets/js/field-dashboard.js"></script>
 </body>
 
 </html>

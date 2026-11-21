@@ -3180,5 +3180,52 @@ span.flatpickr-weekday {
     color: var(--brand-lime) !important;
 }
 
+.dataset-error[hidden] {
+    display: none !important;
+}
+
+.field-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin-top: 0.25rem;
+}
+
+.field-stat-tile {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.2rem;
+    padding: 0.85rem;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    background: var(--bs-body-bg);
+}
+
+.field-stat-label,
+.field-stat-tile small {
+    color: var(--text-muted-green);
+    font-size: 0.75rem;
+}
+
+.field-stat-label {
+    font-weight: 600;
+}
+
+.field-stat-value {
+    color: var(--text-main);
+    font-size: 1.2rem;
+    font-weight: 800;
+}
+
+@media (max-width: 575.98px) {
+    .field-stats-grid {
+        gap: 0.5rem;
+    }
+
+    .field-stat-tile {
+        padding: 0.65rem;
+    }
+}
 
 

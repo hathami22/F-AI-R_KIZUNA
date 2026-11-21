@@ -143,9 +143,19 @@
 │   ├── css/
 │   │   └── main.css           # Core Design System & Custom Stylesheet
 │   ├── images/
-│   │   └── favicon.ico        # Template Favicon
+│   │   ├── favicon.ico        # Dashboard Favicon
+│   │   └── nabta-logo.png     # Nabta Brand Mark
+│   ├── data/
+│   │   ├── simulated_weed_gps.csv
+│   │   ├── simulated_gps_route.csv
+│   │   └── simulated_field_density.geojson
 │   ├── js/
-│   │   ├── dashboard.js       # Core ApexCharts & Mobile Navigation logic
+│   │   ├── dashboard.js       # Shared navigation and date-picker behavior
+│   │   ├── field-data.js      # Survey dataset loader and summaries
+│   │   ├── field-dashboard.js # Field KPI and chart rendering
+│   │   ├── field-forms.js     # Dataset-backed review forms
+│   │   ├── field-alerts.js    # Dataset-backed alerts
+│   │   ├── field-tables.js    # Dataset-backed tables
 │   │   └── auth.js            # Login & Auth form interaction script
 │   └── libs/
 │       ├── apexcharts/        # ApexCharts v4.x Library
@@ -160,7 +170,8 @@
 │   │       └── docs.js        # Documentation Interaction Script
 │   └── index.html             # Developer Documentation & User Guide
 
-├── index.html                 # Main Analytics Dashboard Page
+├── index.html                 # Main Field Operations Dashboard
+├── field-data.html            # Field detection, route, and density tables
 ├── page-404.html              # 404 Error Page Template
 ├── page-blank.html            # Blank Starter Page Template
 ├── page-login.html            # Authentication Login Page
@@ -173,15 +184,13 @@
         <!-- 3. Quick Start Section -->
         <section id="quick-start" class="doc-section">
           <h2><i class="bi bi-play-circle"></i> 3. Quick Start & Setup</h2>
-          <p>To run Nabta locally, simply open any HTML file in your web browser or serve it via a local web
-            server (e.g. Apache, Nginx, VS Code Live Server):</p>
+          <p>Serve the project over HTTP so the dashboard can fetch its CSV and GeoJSON datasets:</p>
 
           <pre><button class="btn-copy" onclick="copyCode(this)">Copy</button><code># Example: Serving via simple HTTP server
-npx serve .
-# or Python simple server
-python3 -m http.server 8000</code></pre>
+python -m http.server 8000</code></pre>
 
           <p>Navigate to <code>http://localhost:8000/index.html</code> to view the dashboard.</p>
+          <p class="small text-muted">The supplied survey datasets are simulated and contain elapsed seconds, not calendar timestamps. The date-range picker is a reporting-period selector and does not filter this single run.</p>
         </section>
 
         <!-- 4. Design System Section -->

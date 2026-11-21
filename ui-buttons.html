@@ -180,19 +180,10 @@
               <h6 class="notification-title">Notifications</h6>
               <button class="btn-clear-all" type="button">Mark all read</button>
             </div>
-            <div class="notification-list">
-              <a href="#" class="notification-item">
-                <div class="notification-icon bg-success text-white">
-                  <i class="bi bi-wallet2"></i>
-                </div>
-                <div class="notification-content">
-                  <p class="notification-text">New sale received: <strong>$150.00</strong></p>
-                  <span class="notification-time">2 mins ago</span>
-                </div>
-                <span class="notification-unread-dot"></span>
-              </a>
+            <div class="notification-list" id="field-notifications">
+              <p class="notification-text px-3 py-2 mb-0">Loading field alerts...</p>
             </div>
-            <a href="#" class="notification-footer">View All Notifications</a>
+            <a href="ui-buttons.html#dataset-alerts" class="notification-footer">View All Field Alerts</a>
           </div>
         </div>
 
@@ -228,6 +219,7 @@
       </nav>
     </div>
     <!-- END: Page Header Banner -->
+    <div id="field-data-error" class="alert alert-danger dataset-error" role="alert" hidden></div>
 
     <!-- START: Main Components Grid Layout -->
     <div class="row g-4 mb-4">
@@ -275,55 +267,13 @@
         </div>
       </div>
 
-      <!-- Column 2: Reusable Alerts -->
+      <!-- Column 2: Dataset Alerts -->
       <div class="col-12 col-lg-6">
         <div class="card border-light shadow-sm p-4 h-100">
-          <h5 class="card-title mb-4">Notification Alerts</h5>
-
-          <!-- Alert Primary -->
-          <div class="alert-custom alert-custom-primary">
-            <i class="bi bi-info-circle-fill alert-custom-icon"></i>
-            <div class="alert-custom-content">
-              A simple custom primary warning alert. Feel free to customize its layout context.
-            </div>
-          </div>
-
-          <!-- Alert Success -->
-          <div class="alert-custom alert-custom-success">
-            <i class="bi bi-check-circle-fill alert-custom-icon"></i>
-            <div class="alert-custom-content">
-              <strong>Success Alert:</strong> Your data synchronization completed with zero error results!
-            </div>
-            <button class="alert-custom-close" type="button" aria-label="Close" onclick="this.parentElement.remove();">
-              <i class="bi bi-x-lg"></i>
-            </button>
-          </div>
-
-          <!-- Alert Danger -->
-          <div class="alert-custom alert-custom-danger">
-            <i class="bi bi-exclamation-triangle-fill alert-custom-icon"></i>
-            <div class="alert-custom-content">
-              <strong>Danger Warning:</strong> There was an issue processing your subscription payment bounds.
-            </div>
-            <button class="alert-custom-close" type="button" aria-label="Close" onclick="this.parentElement.remove();">
-              <i class="bi bi-x-lg"></i>
-            </button>
-          </div>
-
-          <!-- Alert Warning -->
-          <div class="alert-custom alert-custom-warning">
-            <i class="bi bi-exclamation-circle-fill alert-custom-icon"></i>
-            <div class="alert-custom-content">
-              <strong>Notice Warning:</strong> Please check your local database connection variables immediately.
-            </div>
-          </div>
-
-          <!-- Alert Info -->
-          <div class="alert-custom alert-custom-info">
-            <i class="bi bi-lightbulb-fill alert-custom-icon"></i>
-            <div class="alert-custom-content">
-              <strong>Tip Accent:</strong> You can minimize the left-side navigational sidebar options using the toggle.
-            </div>
+          <h5 class="card-title mb-4" id="dataset-alerts">Survey Alerts</h5>
+          <p class="text-muted-green">Alerts are generated from missed detections, crop-protected observations, and field-density hotspots.</p>
+          <div id="field-alert-list" aria-live="polite">
+            <p class="text-muted-green">Loading survey alerts...</p>
           </div>
         </div>
       </div>
@@ -363,6 +313,9 @@
   <script src="assets/libs/apexcharts/apexcharts.min.js"></script>
   <script src="assets/libs/flatpickr/flatpickr.min.js"></script>
 
+  <script src="assets/js/field-data.js"></script>
+  <script src="assets/js/field-ui.js"></script>
+  <script src="assets/js/field-alerts.js"></script>
   <!-- Local dashboard interactions controller -->
   <script src="assets/js/dashboard.js"></script>
 </body>

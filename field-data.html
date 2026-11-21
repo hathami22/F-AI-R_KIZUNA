@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Field Data - Nabta Admin Dashboard</title>
+  <meta name="description" content="Explore simulated weed detections, GPS routes, and field-density data.">
+  <meta name="author" content="Nabta based on Spark Admin">
+  <link rel="icon" type="image/png" href="assets/images/favicon.ico">
+  <link rel="stylesheet" href="assets/libs/bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" href="assets/libs/bootstrap-icons/bootstrap-icons.css">
+  <link rel="stylesheet" href="assets/css/main.css">
+</head>
+
+<body>
+  <div class="sidebar-wrapper" id="sidebar">
+    <a href="index.html" class="sidebar-brand">
+      <img src="assets/images/nabta-logo.png" alt="Nabta">
+    </a>
+    <div class="flex-grow-1 overflow-y-auto">
+      <div class="sidebar-menu-section">
+        <div class="sidebar-menu-title">Field Operations</div>
+        <ul class="sidebar-menu-list">
+          <li class="sidebar-menu-item">
+            <a href="index.html" class="sidebar-menu-link" title="Dashboard">
+              <i class="bi bi-grid-fill"></i><span>Dashboard</span>
+            </a>
+          </li>
+          <li class="sidebar-menu-item">
+            <a href="field-data.html" class="sidebar-menu-link active" title="Field Data">
+              <i class="bi bi-table"></i><span>Field Data</span>
+            </a>
+          </li>
+          <li class="sidebar-menu-item">
+            <a href="ui-forms.html" class="sidebar-menu-link" title="Survey Filters">
+              <i class="bi bi-input-cursor-text"></i><span>Survey Filters</span>
+            </a>
+          </li>
+          <li class="sidebar-menu-item">
+            <a href="ui-buttons.html#dataset-alerts" class="sidebar-menu-link" title="Field Alerts">
+              <i class="bi bi-exclamation-triangle"></i><span>Field Alerts</span>
+            </a>
+          </li>
+          <li class="sidebar-menu-item">
+            <a href="tables-basic.html" class="sidebar-menu-link" title="Basic Tables">
+              <i class="bi bi-grid-3x3"></i><span>Basic Tables</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="sidebar-profile">
+      <img src="assets/images/avatar.png" alt="Administrator" class="sidebar-profile-img">
+      <div class="sidebar-profile-info">
+        <div class="sidebar-profile-name">Administrator</div>
+        <div class="sidebar-profile-email">admin@email.com</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-wrapper">
+    <header class="navbar-custom">
+      <div class="navbar-left">
+        <button class="btn-desktop-toggle d-none d-xl-flex align-items-center justify-content-center me-3"
+          id="desktop-sidebar-toggle" aria-label="Minimize Sidebar">
+          <i class="bi bi-chevron-bar-left"></i>
+        </button>
+        <button class="sidebar-toggle-btn me-2" id="sidebar-toggle" aria-label="Toggle Navigation">
+          <i class="bi bi-list"></i>
+        </button>
+        <a href="index.html" class="text-decoration-none text-main fw-bold">Nabta Field Data</a>
+      </div>
+      <div class="navbar-actions">
+        <div class="dropdown">
+          <button class="navbar-action-btn dropdown-toggle" type="button" data-bs-toggle="dropdown"
+            aria-expanded="false" id="btn-notifications" data-bs-auto-close="outside" aria-label="Notifications">
+            <i class="bi bi-bell"></i><span class="navbar-action-badge"></span>
+          </button>
+          <div class="dropdown-menu dropdown-menu-end dropdown-menu-notification p-0"
+            aria-labelledby="btn-notifications">
+            <div class="notification-header">
+              <h6 class="notification-title">Field Alerts</h6>
+              <button class="btn-clear-all" type="button">Mark all read</button>
+            </div>
+            <div class="notification-list" id="field-notifications">
+              <p class="notification-text px-3 py-2 mb-0">Loading field alerts...</p>
+            </div>
+            <a href="ui-buttons.html#dataset-alerts" class="notification-footer">View All Field Alerts</a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Field Data</h1>
+        <p class="page-subtitle">Simulated weed detections, GPS route samples, and density-grid hotspots.</p>
+      </div>
+      <a href="index.html" class="btn-table-action text-decoration-none">
+        <i class="bi bi-arrow-left"></i> Dashboard
+      </a>
+    </div>
+
+    <div id="field-data-error" class="alert alert-danger dataset-error" role="alert" hidden></div>
+
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-xl-3">
+        <div class="card p-3 h-100">
+          <span class="field-stat-label">Detections</span>
+          <strong class="field-stat-value" id="field-total-detections">—</strong>
+        </div>
+      </div>
+      <div class="col-6 col-xl-3">
+        <div class="card p-3 h-100">
+          <span class="field-stat-label">Treated</span>
+          <strong class="field-stat-value" id="field-treated-summary">—</strong>
+        </div>
+      </div>
+      <div class="col-6 col-xl-3">
+        <div class="card p-3 h-100">
+          <span class="field-stat-label">Route distance</span>
+          <strong class="field-stat-value" id="field-route-summary">—</strong>
+        </div>
+      </div>
+      <div class="col-6 col-xl-3">
+        <div class="card p-3 h-100">
+          <span class="field-stat-label">Surveyed area</span>
+          <strong class="field-stat-value" id="field-density-summary">—</strong>
+        </div>
+      </div>
+    </div>
+
+    <section class="table-card-custom mb-4">
+      <div class="table-header-control">
+        <div>
+          <h2 class="card-title mb-1">Weed Detections</h2>
+          <p class="text-muted-green mb-0">Search and filter the simulated detection CSV.</p>
+        </div>
+        <div class="table-filter-group">
+          <div class="table-search-box">
+            <i class="bi bi-search table-search-icon"></i>
+            <input type="search" class="table-search-input" id="weed-search" placeholder="Search detections..." aria-label="Search detections">
+          </div>
+          <select class="form-select-custom" id="weed-status-filter" aria-label="Filter by treatment outcome">
+            <option value="all">All outcomes</option>
+            <option value="treated">Treated</option>
+            <option value="crop-protected">Crop protected</option>
+            <option value="missed">Missed</option>
+          </select>
+          <button class="btn-table-action" type="button" id="export-weeds">
+            <i class="bi bi-file-earmark-arrow-down"></i> Export CSV
+          </button>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="table-custom">
+          <thead>
+            <tr>
+              <th>ID</th><th>Species</th><th>Elapsed (s)</th><th>Latitude</th>
+              <th>Longitude</th><th>Grid (x, y)</th><th>Status</th><th>Treated at (s)</th>
+            </tr>
+          </thead>
+          <tbody id="weed-table-body"></tbody>
+        </table>
+      </div>
+      <div class="table-footer-control">
+        <span class="table-pagination-info" id="weed-page-info" aria-live="polite">Loading detections...</span>
+        <div class="d-flex gap-2">
+          <button class="btn-table-action" id="weed-page-previous" type="button" disabled>Previous</button>
+          <button class="btn-table-action" id="weed-page-next" type="button" disabled>Next</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="table-card-custom mb-4" id="route-table">
+      <div class="table-header-control">
+        <div>
+          <h2 class="card-title mb-1">GPS Route Samples</h2>
+          <p class="text-muted-green mb-0" id="route-table-summary">Loading route data...</p>
+        </div>
+        <div class="d-flex gap-2 align-items-center">
+          <button class="btn-table-action" type="button" id="export-route">
+            <i class="bi bi-file-earmark-arrow-down"></i> Export CSV
+          </button>
+          <button class="btn-table-action" id="route-page-previous" type="button" disabled>Previous</button>
+          <button class="btn-table-action" id="route-page-next" type="button" disabled>Next</button>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="table-custom">
+          <thead>
+            <tr>
+              <th>Sample</th><th>Elapsed (s)</th><th>Speed (m/s)</th><th>Target (m/s)</th>
+              <th>Latitude</th><th>Longitude</th>
+            </tr>
+          </thead>
+          <tbody id="route-table-body"></tbody>
+        </table>
+      </div>
+      <div class="table-footer-control">
+        <span class="table-pagination-info" id="route-page-info" aria-live="polite">Loading route samples...</span>
+      </div>
+    </section>
+
+    <section class="table-card-custom mb-4" id="density-table">
+      <div class="table-header-control">
+        <div>
+          <h2 class="card-title mb-1">Density Hotspots</h2>
+          <p class="text-muted-green mb-0">Highest-density cells from the GeoJSON field grid.</p>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="table-custom">
+          <thead>
+            <tr><th>Cell</th><th>Weeds / m²</th><th>Unique weeds</th><th>Latitude</th><th>Longitude</th></tr>
+          </thead>
+          <tbody id="density-table-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer class="footer-custom">
+      <div class="footer-left">
+        <span class="footer-logo"><img src="assets/images/nabta-logo.png" alt="Nabta"></span>
+        <span class="footer-separator">|</span>
+        <span class="footer-copy">Simulated field survey data</span>
+      </div>
+    </footer>
+  </div>
+
+  <script src="assets/libs/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/field-data.js"></script>
+  <script src="assets/js/field-ui.js"></script>
+  <script src="assets/js/field-tables.js"></script>
+  <script src="assets/js/dashboard.js"></script>
+</body>
+
+</html>

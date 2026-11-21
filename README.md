@@ -4,10 +4,17 @@ Nabta is a Bootstrap 5 admin dashboard based on the Spark Admin template.
 
 ## Getting Started
 
-Clone this repository and open `index.html` in a browser, or serve the project directory locally.
+Clone this repository and serve the project directory over HTTP so the dashboard can load its datasets:
 ```
 git clone --branch dashboard https://github.com/hathami22/F-AI-R_KIZUNA.git
+cd F-AI-R_KIZUNA
+python -m http.server 8000
 ```
+Then open `http://localhost:8000`.
+
+## Survey Data
+
+The dashboard uses the simulated weed detections, GPS route, and field-density GeoJSON in `assets/data/`. These files contain elapsed survey time rather than calendar dates, so the date-range picker is a reporting-period control and does not filter the single simulated run.
 
 ## Original Template Attribution
 ```
