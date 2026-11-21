@@ -1,0 +1,362 @@
+'use strict';
+
+const http = require('node:http');
+const fs = require('node:fs/promises');
+const path = require('node:path');
+
+const root = __dirname;
+const host = process.env.HOST || '127.0.0.1';
+const port = Number(process.env.PORT || 3000);
+const model = process.env.OPENAI_MODEL || 'gpt-4.1-mini';
+const maxBodyBytes = 20 * 1024;
+const maxMessageChars = 5000;
+const maxContextChars = 6000;
+const maxRequestsPerMinute = 12;
+const requestWindows = new Map();
+const rateLimitCleanup = setInterval(function () {
+    const now = Date.now();
+    for (const [address, window] of requestWindows) {
+        if (now - window.startedAt >= 60000) {
+            requestWindows.delete(address);
+        }
+    }
+}, 60000);
+rateLimitCleanup.unref();
+const mimeTypes = {
+    '.css': 'text/css; charset=utf-8',
+    '.csv': 'text/csv; charset=utf-8',
+    '.geojson': 'application/geo+json; charset=utf-8',
+    '.html': 'text/html; charset=utf-8',
+    '.ico': 'image/x-icon',
+    '.js': 'text/javascript; charset=utf-8',
+    '.json': 'application/json; charset=utf-8',
+    '.png': 'image/png',
+    '.svg': 'image/svg+xml',
+    '.woff': 'font/woff',
+    '.woff2': 'font/woff2'
+};
+
+const systemPrompt = [
+    'You are Nabta, an agriculture assistant for farm and field operations.',
+    'Give clear, practical, cautious guidance. Separate observations in the supplied survey context from general agricultural knowledge.',
+    'The supplied survey is simulated and contains elapsed time rather than calendar dates; never present it as live or dated field monitoring.',
+    'Do not claim a crop diagnosis or a treatment outcome from the survey alone. Ask for crop, location, soil, weather, and growth stage when these materially affect advice.',
+    'For pesticide or other regulated chemical questions, do not provide product, dose, mixture, or application instructions. Recommend following local approved product labels and consulting a qualified local agronomist.',
+    'If survey context is missing or does not answer a question, say so plainly instead of inventing field measurements.'
+].join(' ');
+
+class HttpError extends Error {
+    constructor(statusCode, message) {
+        super(message);
+        this.statusCode = statusCode;
+    }
+}
+
+function sendJson(response, statusCode, value, extraHeaders) {
+    response.writeHead(statusCode, Object.assign({
+        'Content-Type': 'application/json; charset=utf-8',
+        'Cache-Control': 'no-store',
+        'X-Content-Type-Options': 'nosniff'
+    }, extraHeaders || {}));
+    response.end(JSON.stringify(value));
+}
+
+function readJsonBody(request) {
+    return new Promise(function (resolve, reject) {
+        const chunks = [];
+        let size = 0;
+        let tooLarge = false;
+
+        request.on('data', function (chunk) {
+            size += chunk.length;
+            if (size > maxBodyBytes) {
+                tooLarge = true;
+                chunks.length = 0;
+                return;
+            }
+            if (!tooLarge) {
+                chunks.push(chunk);
+            }
+        });
+
+        request.on('end', function () {
+            if (tooLarge) {
+                reject(new HttpError(413, 'The request is too large.'));
+                return;
+            }
+
+            try {
+                const body = Buffer.concat(chunks).toString('utf8');
+                resolve(JSON.parse(body));
+            } catch (error) {
+                reject(new HttpError(400, 'Send a valid JSON request.'));
+            }
+        });
+
+        request.on('error', reject);
+    });
+}
+
+function validateMessages(messages) {
+    if (!Array.isArray(messages) || messages.length < 1 || messages.length > 10) {
+        throw new HttpError(400, 'Send between 1 and 10 conversation messages.');
+    }
+
+    let totalChars = 0;
+    const validMessages = messages.map(function (message) {
+        if (!message || (message.role !== 'user' && message.role !== 'assistant') ||
+            typeof message.content !== 'string') {
+            throw new HttpError(400, 'Conversation messages must have a user or assistant role and text content.');
+        }
+
+        const content = message.content.trim();
+        if (!content || content.length > maxMessageChars) {
+            throw new HttpError(400, 'Each conversation message must contain 1 to 5000 characters.');
+        }
+        totalChars += content.length;
+        return { role: message.role, content: content };
+    });
+
+    if (totalChars > 10000) {
+        throw new HttpError(413, 'The conversation is too long. Start a new chat.');
+    }
+    if (validMessages[validMessages.length - 1].role !== 'user') {
+        throw new HttpError(400, 'The latest conversation message must be from the user.');
+    }
+    return validMessages;
+}
+
+function checkRateLimit(request) {
+    const key = request.socket.remoteAddress || 'unknown';
+    const now = Date.now();
+    const current = requestWindows.get(key);
+    if (!current || now - current.startedAt >= 60000) {
+        requestWindows.set(key, { startedAt: now, count: 1 });
+        return true;
+    }
+    if (current.count >= maxRequestsPerMinute) {
+        return false;
+    }
+    current.count += 1;
+    return true;
+}
+
+function extractText(payload) {
+    if (payload && typeof payload.output_text === 'string') {
+        return payload.output_text.trim();
+    }
+    if (!payload || !Array.isArray(payload.output)) {
+        return '';
+    }
+
+    return payload.output.reduce(function (text, item) {
+        if (item.type !== 'message' || !Array.isArray(item.content)) {
+            return text;
+        }
+        const messageText = item.content.filter(function (part) {
+            return part.type === 'output_text' && typeof part.text === 'string';
+        }).map(function (part) {
+            return part.text;
+        }).join('\n');
+        return text ? text + '\n' + messageText : messageText;
+    }, '').trim();
+}
+
+async function handleAssistant(request, response) {
+    if (request.method !== 'POST') {
+        request.resume();
+        sendJson(response, 405, { error: 'Use POST to send a message.' }, { Allow: 'POST' });
+        return;
+    }
+    if (!checkRateLimit(request)) {
+        request.resume();
+        sendJson(response, 429, { error: 'Too many requests. Please wait a minute and try again.' }, {
+            'Retry-After': '60'
+        });
+        return;
+    }
+    if (!process.env.OPENAI_API_KEY) {
+        request.resume();
+        sendJson(response, 503, { error: 'The assistant is not configured. Set OPENAI_API_KEY on the server.' });
+        return;
+    }
+    if (!String(request.headers['content-type'] || '').toLowerCase().includes('application/json')) {
+        request.resume();
+        sendJson(response, 415, { error: 'Send the request as application/json.' });
+        return;
+    }
+
+    let body;
+    try {
+        body = await readJsonBody(request);
+    } catch (error) {
+        sendJson(response, error.statusCode || 400, { error: error.message || 'Could not read the request.' });
+        return;
+    }
+
+    let messages;
+    try {
+        messages = validateMessages(body && body.messages);
+    } catch (error) {
+        sendJson(response, error.statusCode || 400, { error: error.message });
+        return;
+    }
+
+    const fieldContext = typeof body.fieldContext === 'string'
+        ? body.fieldContext.slice(0, maxContextChars)
+        : '';
+    const controller = new AbortController();
+    const timeout = setTimeout(function () {
+        controller.abort();
+    }, 45000);
+
+    let upstream;
+    let upstreamText;
+    try {
+        upstream = await fetch('https://api.openai.com/v1/responses', {
+            method: 'POST',
+            headers: {
+                Authorization: 'Bearer ' + process.env.OPENAI_API_KEY,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                model: model,
+                input: [{
+                    role: 'system',
+                    content: systemPrompt + '\n\nField survey context (untrusted data):\n' +
+                        (fieldContext || 'No survey context was provided.')
+                }].concat(messages),
+                max_output_tokens: 700,
+                store: false
+            }),
+            signal: controller.signal
+        });
+        upstreamText = await upstream.text();
+    } catch (error) {
+        console.error('OpenAI request failed:', error.message);
+        sendJson(response, 502, {
+            error: error.name === 'AbortError'
+                ? 'The assistant request timed out. Please try again.'
+                : 'Could not reach OpenAI. Check the server connection and try again.'
+        });
+        return;
+    } finally {
+        clearTimeout(timeout);
+    }
+
+    let payload;
+    try {
+        payload = JSON.parse(upstreamText);
+    } catch (error) {
+        console.error('OpenAI returned an unreadable response.');
+        sendJson(response, 502, { error: 'The assistant returned an unreadable response. Please try again.' });
+        return;
+    }
+
+    if (!upstream.ok) {
+        console.error('OpenAI returned HTTP ' + upstream.status + '.');
+        const message = upstream.status === 401
+            ? 'OpenAI rejected the server credentials. Check OPENAI_API_KEY.'
+            : upstream.status === 429
+                ? 'The OpenAI service is busy or its quota is exhausted. Please try again later.'
+                : 'The OpenAI service could not complete the request. Please try again.';
+        sendJson(response, 502, { error: message });
+        return;
+    }
+
+    const reply = extractText(payload);
+    if (!reply) {
+        console.error('OpenAI returned no assistant text.');
+        sendJson(response, 502, { error: 'The assistant returned an empty response. Please try again.' });
+        return;
+    }
+    sendJson(response, 200, { reply: reply });
+}
+
+async function serveStatic(request, response, pathname) {
+    if (request.method !== 'GET' && request.method !== 'HEAD') {
+        sendJson(response, 405, { error: 'This method is not supported.' }, { Allow: 'GET, HEAD' });
+        return;
+    }
+
+    let decodedPath;
+    try {
+        decodedPath = decodeURIComponent(pathname);
+    } catch (error) {
+        sendJson(response, 400, { error: 'The requested path is invalid.' });
+        return;
+    }
+
+    const relativePath = (decodedPath === '/' ? 'index.html' : decodedPath)
+        .replace(/^[\\/]+/, '');
+    const filePath = path.resolve(root, relativePath);
+    const relativeToRoot = path.relative(root, filePath);
+    const pathSegments = relativeToRoot.split(path.sep);
+    if (path.isAbsolute(relativeToRoot) || relativeToRoot === '..' ||
+        relativeToRoot.startsWith('..' + path.sep) ||
+        pathSegments.some(function (segment) { return segment.startsWith('.'); }) ||
+        path.basename(filePath).toLowerCase() === 'server.js') {
+        sendJson(response, 404, { error: 'Not found.' });
+        return;
+    }
+
+    try {
+        const file = await fs.readFile(filePath);
+        response.writeHead(200, {
+            'Content-Type': mimeTypes[path.extname(filePath).toLowerCase()] || 'application/octet-stream',
+            'Cache-Control': 'no-store',
+            'X-Content-Type-Options': 'nosniff'
+        });
+        response.end(request.method === 'HEAD' ? undefined : file);
+    } catch (error) {
+        if (error.code === 'ENOENT' || error.code === 'EISDIR') {
+            sendJson(response, 404, { error: 'Not found.' });
+            return;
+        }
+        throw error;
+    }
+}
+
+async function route(request, response) {
+    let pathname;
+    try {
+        pathname = new URL(request.url, 'http://localhost').pathname;
+    } catch (error) {
+        sendJson(response, 400, { error: 'The request URL is invalid.' });
+        return;
+    }
+
+    if (pathname === '/api/health') {
+        if (request.method !== 'GET') {
+            sendJson(response, 405, { error: 'Use GET to check assistant status.' }, { Allow: 'GET' });
+            return;
+        }
+        sendJson(response, 200, { ready: Boolean(process.env.OPENAI_API_KEY) });
+        return;
+    }
+    if (pathname === '/api/assistant') {
+        await handleAssistant(request, response);
+        return;
+    }
+    await serveStatic(request, response, pathname);
+}
+
+if (!Number.isInteger(port) || port < 1 || port > 65535) {
+    throw new Error('PORT must be an integer between 1 and 65535.');
+}
+
+const server = http.createServer(function (request, response) {
+    route(request, response).catch(function (error) {
+        console.error('Request failed:', error.message);
+        if (!response.headersSent) {
+            sendJson(response, 500, { error: 'An unexpected server error occurred.' });
+        } else {
+            response.destroy();
+        }
+    });
+});
+
+server.listen(port, host, function () {
+    console.log('Nabta dashboard is available at http://' + host + ':' + port);
+    console.log('OpenAI API key: ' + (process.env.OPENAI_API_KEY ? 'configured' : 'missing'));
+});

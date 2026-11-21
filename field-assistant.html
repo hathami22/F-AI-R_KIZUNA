@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agriculture Assistant - Nabta</title>
+  <meta name="description" content="Ask Nabta's agriculture assistant about field operations and survey data.">
+  <meta name="author" content="Nabta based on Spark Admin">
+  <link rel="icon" type="image/png" href="assets/images/favicon.ico">
+  <link rel="stylesheet" href="assets/libs/bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" href="assets/libs/bootstrap-icons/bootstrap-icons.css">
+  <link rel="stylesheet" href="assets/css/main.css">
+</head>
+
+<body>
+  <div class="sidebar-wrapper" id="sidebar">
+    <a href="index.html" class="sidebar-brand">
+      <img src="assets/images/nabta-logo.png" alt="Nabta">
+    </a>
+    <div class="flex-grow-1 overflow-y-auto">
+      <div class="sidebar-menu-section">
+        <div class="sidebar-menu-title">Field Operations</div>
+        <ul class="sidebar-menu-list">
+          <li class="sidebar-menu-item">
+            <a href="index.html" class="sidebar-menu-link" title="Dashboard">
+              <i class="bi bi-grid-fill"></i><span>Dashboard</span>
+            </a>
+          </li>
+          <li class="sidebar-menu-item">
+            <a href="field-data.html" class="sidebar-menu-link" title="Field Data">
+              <i class="bi bi-table"></i><span>Field Data</span>
+            </a>
+          </li>
+          <li class="sidebar-menu-item">
+            <a href="field-assistant.html" class="sidebar-menu-link active" aria-current="page" title="Agriculture Assistant">
+              <i class="bi bi-chat-dots"></i><span>Agriculture Assistant</span>
+            </a>
+          </li>
+          <li class="sidebar-menu-item">
+            <a href="ui-forms.html" class="sidebar-menu-link" title="Survey Filters">
+              <i class="bi bi-input-cursor-text"></i><span>Survey Filters</span>
+            </a>
+          </li>
+          <li class="sidebar-menu-item">
+            <a href="ui-buttons.html#dataset-alerts" class="sidebar-menu-link" title="Field Alerts">
+              <i class="bi bi-exclamation-triangle"></i><span>Field Alerts</span>
+            </a>
+          </li>
+          <li class="sidebar-menu-item">
+            <a href="tables-basic.html" class="sidebar-menu-link" title="Basic Tables">
+              <i class="bi bi-grid-3x3"></i><span>Basic Tables</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="sidebar-profile">
+      <img src="assets/images/avatar.png" alt="Administrator" class="sidebar-profile-img">
+      <div class="sidebar-profile-info">
+        <div class="sidebar-profile-name">Administrator</div>
+        <div class="sidebar-profile-email">admin@email.com</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-wrapper">
+    <header class="navbar-custom">
+      <div class="navbar-left">
+        <button class="btn-desktop-toggle d-none d-xl-flex align-items-center justify-content-center me-3"
+          id="desktop-sidebar-toggle" aria-label="Minimize Sidebar">
+          <i class="bi bi-chevron-bar-left"></i>
+        </button>
+        <button class="sidebar-toggle-btn me-2" id="sidebar-toggle" aria-label="Toggle Navigation">
+          <i class="bi bi-list"></i>
+        </button>
+        <a href="index.html" class="text-decoration-none text-main fw-bold">Nabta Agriculture Assistant</a>
+      </div>
+    </header>
+
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Agriculture Assistant</h1>
+        <p class="page-subtitle">Ask about your field survey or get practical, general agriculture guidance.</p>
+      </div>
+      <span class="assistant-connection-badge" id="assistant-connection-status" role="status" aria-live="polite">
+        Checking assistant...
+      </span>
+    </div>
+
+    <div class="alert alert-danger assistant-error" id="assistant-error" role="alert" hidden></div>
+
+    <div class="assistant-layout">
+      <section class="assistant-chat-card" aria-label="Chat with Nabta">
+        <div class="assistant-chat-header">
+          <div class="assistant-avatar" aria-hidden="true"><i class="bi bi-flower1"></i></div>
+          <div>
+            <h2 class="assistant-chat-title">Ask Nabta</h2>
+            <p class="assistant-chat-subtitle">Agriculture guidance grounded in your supplied survey data</p>
+          </div>
+        </div>
+
+        <div class="assistant-messages" id="assistant-messages" role="log" aria-live="polite"
+          aria-relevant="additions text" aria-label="Conversation"></div>
+
+        <div class="assistant-suggestions" aria-label="Suggested questions">
+          <button type="button" class="assistant-prompt" data-prompt="Summarize this survey and highlight the main field priorities.">
+            Summarize my survey
+          </button>
+          <button type="button" class="assistant-prompt" data-prompt="How should I prioritize the highest-density areas in this survey?">
+            Prioritize hotspots
+          </button>
+          <button type="button" class="assistant-prompt" data-prompt="What could I check to reduce missed detections on a future survey?">
+            Review missed detections
+          </button>
+        </div>
+
+        <form class="assistant-composer" id="assistant-form">
+          <label class="visually-hidden" for="assistant-input">Your agriculture question</label>
+          <textarea id="assistant-input" name="message" rows="2" maxlength="3000"
+            placeholder="Ask a question about your field..." required></textarea>
+          <button class="assistant-send-button" id="assistant-send" type="submit" aria-label="Send message" disabled>
+            <i class="bi bi-send-fill" aria-hidden="true"></i>
+          </button>
+        </form>
+        <p class="assistant-input-note">Enter to send · Shift+Enter for a new line · Up to 3,000 characters</p>
+      </section>
+
+      <aside class="assistant-context-card" aria-label="Survey context and guidance">
+        <div class="assistant-context-heading">
+          <i class="bi bi-geo-alt-fill" aria-hidden="true"></i>
+          <h2>Survey context</h2>
+        </div>
+        <p class="assistant-context-description">A concise snapshot from the supplied simulated field files.</p>
+        <div class="assistant-context-status" id="assistant-data-status" role="status" aria-live="polite">
+          Loading survey summary...
+        </div>
+        <dl class="assistant-context-stats" id="assistant-field-summary"></dl>
+        <div class="assistant-guidance-note">
+          <strong>Use local expertise</strong>
+          <p>AI suggestions are informational, not a crop diagnosis. Verify actions against local conditions and regulations.</p>
+        </div>
+        <p class="assistant-privacy-note">Your question and this summary are sent to OpenAI through the server. No API key is sent to the browser.</p>
+      </aside>
+    </div>
+
+    <footer class="footer-custom">
+      <div class="footer-left">
+        <span class="footer-logo"><img src="assets/images/nabta-logo.png" alt="Nabta"></span>
+        <span class="footer-separator">|</span>
+        <span class="footer-copy">Agriculture guidance with simulated field data</span>
+      </div>
+    </footer>
+  </div>
+
+  <script src="assets/libs/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/field-data.js"></script>
+  <script src="assets/js/agri-assistant.js"></script>
+  <script src="assets/js/dashboard.js"></script>
+</body>
+
+</html>
