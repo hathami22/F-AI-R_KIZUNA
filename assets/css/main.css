@@ -174,15 +174,14 @@ a:hover {
     color: #FFFFFF;
 }
 
-.sidebar-brand i {
-    color: var(--brand-lime);
-    font-size: 1.5rem;
-    transition: transform 0.3s ease, color 0.3s ease;
-}
-
-.sidebar-brand:hover i {
-    transform: scale(1.1) rotate(90deg);
-    color: var(--brand-lime-hover);
+.sidebar-brand img {
+    display: block;
+    width: 160px;
+    max-width: 100%;
+    height: auto;
+    padding: 4px 6px;
+    background-color: #FFFFFF;
+    border-radius: 4px;
 }
 
 .sidebar-menu-section {
@@ -351,7 +350,6 @@ body.sidebar-minimized .sidebar-wrapper {
     align-items: center;
 }
 
-body.sidebar-minimized .sidebar-brand span,
 body.sidebar-minimized .sidebar-menu-title,
 body.sidebar-minimized .sidebar-menu-link span,
 body.sidebar-minimized .sidebar-menu-badge,
@@ -365,6 +363,10 @@ body.sidebar-minimized .sidebar-brand {
     padding-left: 0;
     justify-content: center;
     width: 100%;
+}
+
+body.sidebar-minimized .sidebar-brand img {
+    width: 56px;
 }
 
 body.sidebar-minimized .sidebar-menu-link {
@@ -1618,17 +1620,13 @@ span.flatpickr-weekday {
     gap: 0.35rem;
 }
 
-.footer-logo i {
-    color: var(--brand-forest-medium);
-    font-size: 0.95rem;
-    display: inline-block;
-    animation: rotateLogo 12s linear infinite;
+.footer-logo img {
+    display: block;
+    width: 96px;
+    height: auto;
 }
 
-@keyframes rotateLogo {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
+
 
 .footer-separator {
     color: var(--border-light);
@@ -1796,15 +1794,14 @@ span.flatpickr-weekday {
     transition: color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.login-brand i {
-    color: var(--brand-forest-medium);
-    font-size: 1.75rem;
-    animation: rotateLogo 15s linear infinite;
-    transition: color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+.login-brand img {
+    display: block;
+    width: 200px;
+    max-width: 100%;
+    height: auto;
 }
 
-.login-brand:hover,
-.login-brand:hover i {
+.login-brand:hover {
     color: var(--brand-lime-hover);
 }
 

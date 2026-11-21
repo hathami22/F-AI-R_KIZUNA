@@ -57,8 +57,14 @@ body {
     gap: 0.5rem;
     text-decoration: none;
 }
-.doc-brand i {
-    color: var(--brand-lime);
+.doc-brand img {
+    display: block;
+    width: 144px;
+    max-width: 100%;
+    height: auto;
+    padding: 4px 6px;
+    background-color: #FFFFFF;
+    border-radius: 4px;
 }
 .doc-brand:hover {
     color: var(--brand-lime);
