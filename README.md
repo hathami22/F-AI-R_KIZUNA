@@ -1,21 +1,17 @@
-# Spark - Free Bootstrap 5 & HTML Admin Dashboard Template
+# Nabta Admin Dashboard
 
-## Preview
- - [Demo](https://themewagon.github.io/spark-admin/)
-
-## Download
- - [Download from ThemeWagon](https://themewagon.com/themes/spark-admin/)
+Nabta is a Bootstrap 5 admin dashboard based on the Spark Admin template.
 
 ## Getting Started
 
-1. Clone Repository
+Clone this repository and open `index.html` in a browser, or serve the project directory locally.
 ```
-git clone https://github.com/themewagon/spark-admin.git
+git clone --branch dashboard https://github.com/hathami22/F-AI-R_KIZUNA.git
 ```
 
-## Author 
+## Original Template Attribution
 ```
-Design and code is completely written by Spark Admin Dev and development team. 
+The original design and code are by Spark Admin Dev and development team.
 ```
 
 ## License
