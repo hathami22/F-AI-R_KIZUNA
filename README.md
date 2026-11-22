@@ -54,6 +54,21 @@ service through the website. Frames are processed in memory.
 The inference port defaults to 8091 and can be changed with `NABTA_DETECTION_PORT`.
 The Agriculture Assistant and video inference have separate runtime dependencies.
 
+## Pest Video Diagnostics
+
+The caterpillar detector is a separate YOLO object-detection model. Copy the supplied
+`pest_best.zip` file to `models/pest_best.pt` (rename it; do not extract the archive), or set
+`NABTA_PEST_MODEL_PATH` to its absolute path. The checkpoint is intentionally excluded
+from Git; `.gitignore` covers `models/*.pt`. The stem/weed pose checkpoint is optional
+for this page, and the caterpillar checkpoint is optional for **Weed Detection**.
+
+Open **Pest Video Diagnostics** from the sidebar, choose a video, and start detection.
+The report counts sampled frames and frame-level detections, not unique insects. The
+optional AI diagnostic sends only that compact report to the Node API/OpenAI; video
+frames are not sent to OpenAI. Configure `OPENAI_API_KEY` to enable it. This checkpoint
+has one trained label (`caterpillar`) and its archive metadata declares AGPL-3.0; verify
+the applicable terms before redistributing the checkpoint.
+
 ## Agriculture Assistant
 
 Open **Agriculture Assistant** from the sidebar to ask questions about the survey or general agricultural topics. The browser sends the conversation and a compact summary of the simulated survey to the local Node server, which forwards the request to OpenAI. Conversations are not stored by the dashboard. Verify AI suggestions against local conditions and regulations; they are not a crop diagnosis or pesticide-use instructions.

@@ -1,6 +1,7 @@
 (function () {
     'use strict';
     const get = id => document.getElementById(id);
+    const pestMode = document.documentElement.dataset.detectionModel === 'pest';
     const video = get('source-video');
     const display = get('detection-canvas');
     const capture = document.createElement('canvas');
@@ -10,10 +11,74 @@
     let controller;
     let ready = false;
     let healthTimer;
+    let assistantReady = false;
+    let pestFramesSampled = 0;
+    let pestFrameDetections = 0;
+    let pestClassTotals = new Map();
+    let pestConfidenceThresholds = new Set();
+    let pestImageSizes = new Set();
+    let pestModelClasses = [];
+    let pestDevice = '';
+    let pestReport = null;
+    let diagnosisBusy = false;
+    let diagnosisGeneration = 0;
 
     function message(text, error = false) {
         get('detection-status').textContent = text;
         get('detection-status').classList.toggle('text-danger', error);
+    }
+    async function checkAssistant() {
+        try {
+            const response = await fetch('/api/health');
+            const data = await response.json();
+            assistantReady = response.ok && data.ready === true;
+            if (assistantReady) {
+                get('pest-ai-diagnostic').textContent =
+                    'The AI receives model and frame-count summaries only; video frames stay on your machine.';
+                get('pest-diagnose').disabled = !pestReport || diagnosisBusy;
+            } else {
+                get('pest-ai-diagnostic').textContent =
+                    'Set OPENAI_API_KEY on the Node server to enable AI diagnostics. Local model detection works without it.';
+            }
+        } catch (error) {
+            assistantReady = false;
+            get('pest-ai-diagnostic').textContent =
+                'The Node API is unavailable. Start the dashboard server to enable AI diagnostics.';
+        }
+    }
+    async function generatePestDiagnostic() {
+        if (!pestMode || !assistantReady || !pestReport || diagnosisBusy) return;
+        const token = ++diagnosisGeneration;
+        diagnosisBusy = true;
+        get('pest-diagnose').disabled = true;
+        get('pest-ai-diagnostic').textContent = 'Generating a cautious diagnostic from the detection summary...';
+        try {
+            const response = await fetch('/api/assistant', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    messages: [{
+                        role: 'user',
+                        content: 'Give a concise agricultural diagnostic for this video detection report. Clearly distinguish model labels from confirmed species or damage, explain that counts are repeated frame-level observations, and suggest safe visual follow-up checks. Do not prescribe pesticides or chemical use.'
+                    }],
+                    fieldContext: JSON.stringify(pestReport)
+                })
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || 'The assistant could not create a diagnostic.');
+            if (typeof result.reply !== 'string' || !result.reply.trim()) throw new Error('The assistant returned an empty diagnostic.');
+            if (token === diagnosisGeneration) get('pest-ai-diagnostic').textContent = result.reply;
+        } catch (error) {
+            if (token === diagnosisGeneration) {
+                get('pest-ai-diagnostic').textContent = 'The AI diagnostic could not be generated.';
+                message(error.message, true);
+            }
+        } finally {
+            if (token === diagnosisGeneration) {
+                diagnosisBusy = false;
+                get('pest-diagnose').disabled = !assistantReady || !pestReport;
+            }
+        }
     }
     function clock(seconds) {
         const tenths = Math.round(seconds * 10);
@@ -23,6 +88,83 @@
         get('detect-play').disabled = !ready || !sourceUrl || video.readyState < 2;
         get('detect-play').textContent = running ? 'Pause detection' : 'Start detection';
         get('timeline').disabled = !sourceUrl || !Number.isFinite(video.duration);
+    }
+    function resetPestReport() {
+        if (!pestMode) return;
+        diagnosisGeneration += 1;
+        diagnosisBusy = false;
+        pestFramesSampled = 0;
+        pestFrameDetections = 0;
+        pestClassTotals = new Map();
+        pestConfidenceThresholds = new Set();
+        pestImageSizes = new Set();
+        pestReport = null;
+        get('pest-summary').textContent = 'Analyze a video to build a frame-level report.';
+        get('pest-class-summary').replaceChildren();
+        const empty = document.createElement('li');
+        empty.textContent = 'No sampled frames yet.';
+        get('pest-class-summary').appendChild(empty);
+        get('pest-ai-diagnostic').textContent = assistantReady
+            ? 'The AI receives model and frame-count summaries only; video frames stay on your machine.'
+            : 'AI diagnostics require OPENAI_API_KEY. Local model detection works without it.';
+        get('pest-diagnose').disabled = true;
+    }
+    function updatePestReport(result) {
+        pestFramesSampled += 1;
+        pestFrameDetections += result.detections.length;
+        pestConfidenceThresholds.add(Number(get('confidence').value));
+        pestImageSizes.add(Number(get('image-size').value));
+        const classesInFrame = new Set();
+        for (const detection of result.detections) {
+            let totals = pestClassTotals.get(detection.class_name);
+            if (!totals) {
+                totals = { frames: 0, boxes: 0, maxConfidence: 0 };
+                pestClassTotals.set(detection.class_name, totals);
+            }
+            totals.boxes += 1;
+            totals.maxConfidence = Math.max(totals.maxConfidence, detection.confidence);
+            classesInFrame.add(detection.class_name);
+        }
+        for (const className of classesInFrame) pestClassTotals.get(className).frames += 1;
+
+        const summaryList = get('pest-class-summary');
+        summaryList.replaceChildren();
+        if (pestClassTotals.size === 0) {
+            const empty = document.createElement('li');
+            empty.textContent = 'No detections above the selected confidence threshold.';
+            summaryList.appendChild(empty);
+            get('pest-summary').textContent = `No model detections in ${pestFramesSampled} sampled frames. This does not rule out pests in the video.`;
+        } else {
+            for (const [className, totals] of pestClassTotals) {
+                const row = document.createElement('li');
+                row.textContent = `${className}: present in ${totals.frames}/${pestFramesSampled} sampled frames; ${totals.boxes} frame detections; maximum score ${(totals.maxConfidence * 100).toFixed(0)}%.`;
+                summaryList.appendChild(row);
+            }
+            get('pest-summary').textContent =
+                `${pestFrameDetections} frame-level detections across ${pestFramesSampled} sampled frames. Repeated frames may show the same insect.`;
+        }
+
+        pestReport = {
+            source: 'Local YOLO video-frame inference',
+            modelClasses: pestModelClasses,
+            device: pestDevice,
+            framesSampled: pestFramesSampled,
+            totalFrameDetections: pestFrameDetections,
+            confidenceThresholdsUsed: Array.from(pestConfidenceThresholds).sort((a, b) => a - b),
+            imageSizesUsed: Array.from(pestImageSizes).sort((a, b) => a - b),
+            classSummary: Array.from(pestClassTotals.entries()).map(([label, totals]) => ({
+                label,
+                framesPresent: totals.frames,
+                frameDetections: totals.boxes,
+                maximumScore: Number(totals.maxConfidence.toFixed(3))
+            })),
+            limitations: [
+                'Frame detections may refer to the same insect in multiple frames.',
+                'The supplied model has only the caterpillar class.',
+                'Model scores are not calibrated probabilities and do not diagnose crop damage.'
+            ]
+        };
+        get('pest-diagnose').disabled = !assistantReady || diagnosisBusy;
     }
     function stop() {
         running = false;
@@ -71,7 +213,7 @@
         ctx.lineWidth = 2;
         for (const detection of result.detections) {
             const crop = ['onion', 'baby-onion'].includes(detection.class_name);
-            const color = crop ? '#80dc93' : '#ff9f43';
+            const color = pestMode ? '#B4F105' : crop ? '#80dc93' : '#ff9f43';
             const [x1,y1,x2,y2] = detection.box;
             ctx.strokeStyle = color;
             ctx.strokeRect(x1*scaleX, y1*scaleY, (x2-x1)*scaleX, (y2-y1)*scaleY);
@@ -82,21 +224,25 @@
             ctx.fillStyle = '#152a20'; ctx.fillRect(labelX, labelY-20, width, 22);
             ctx.fillStyle = color; ctx.fillText(label, labelX+4, labelY-4);
             const stem = detection.stem;
-            if (stem && stem.confidence >= 0.3) {
+            if (!pestMode && stem && stem.confidence >= 0.3) {
                 ctx.fillStyle = '#ffeb3b';
                 ctx.beginPath(); ctx.arc(stem.x*scaleX, stem.y*scaleY, 5, 0, Math.PI*2); ctx.fill();
             }
         }
         get('frame-count').textContent = result.detections.length;
-        get('weed-count').textContent = result.detections.filter(d => ['weed','grassy-weed'].includes(d.class_name)).length;
+        get('weed-count').textContent = pestMode
+            ? result.detections.filter(d => d.class_name === 'caterpillar').length
+            : result.detections.filter(d => ['weed','grassy-weed'].includes(d.class_name)).length;
         get('inference-time').textContent = `${result.inference_ms.toFixed(0)} ms`;
+        if (pestMode) updatePestReport(result);
     }
     async function requestFrame(blob, token) {
         for (let attempt = 0; attempt < 6; attempt++) {
             if (token !== generation) throw new DOMException('Stopped', 'AbortError');
             controller = new AbortController();
             const query = new URLSearchParams({confidence:get('confidence').value, image_size:get('image-size').value});
-            const response = await fetch('/api/detection/frame?' + query, {
+            const endpoint = pestMode ? '/api/pest-detection/frame?' : '/api/detection/frame?';
+            const response = await fetch(endpoint + query, {
                 method:'POST', body:blob, headers:{'Content-Type':'image/jpeg'}, signal:controller.signal
             });
             const result = await response.json();
@@ -112,10 +258,13 @@
         if (running) { stop(); message('Detection paused.'); return; }
         const token = ++generation;
         running = true; updateControls();
-        message('Detecting plants and stems…');
+        message(pestMode ? 'Detecting caterpillars…' : 'Detecting plants and stems…');
         try {
             const end = Math.max(0, video.duration - 0.001);
-            if (video.currentTime >= end) await seek(0);
+            if (video.currentTime >= end) {
+                if (pestMode) resetPestReport();
+                await seek(0);
+            }
             while (running && token === generation) {
                 const started = performance.now();
                 capture.getContext('2d').drawImage(video, 0, 0, capture.width, capture.height);
@@ -144,11 +293,18 @@
         clearTimeout(healthTimer);
         get('model-status').textContent = 'Loading model…';
         try {
-            const response = await fetch('/api/detection/health');
+            const endpoint = pestMode ? '/api/pest-detection/health' : '/api/detection/health';
+            const response = await fetch(endpoint);
             const data = await response.json();
             if (!response.ok || !data.ready) throw new Error(data.error || 'Model unavailable.');
             ready = true;
-            get('model-status').textContent = `Model ready · ${data.device} · one stem keypoint`;
+            if (pestMode) {
+                pestModelClasses = data.classes || ['caterpillar'];
+                pestDevice = data.device || 'local';
+                get('model-status').textContent = `Pest model ready · ${pestDevice} · ${pestModelClasses.join(', ')}`;
+            } else {
+                get('model-status').textContent = `Model ready · ${data.device} · one stem keypoint`;
+            }
             updateControls();
         } catch (error) {
             ready = false; updateControls();
@@ -158,6 +314,7 @@
     }
     get('video-file').onchange = () => {
         stop();
+        if (pestMode) resetPestReport();
         const file = get('video-file').files[0];
         if (sourceUrl) URL.revokeObjectURL(sourceUrl);
         sourceUrl = undefined;
@@ -186,6 +343,11 @@
     };
     get('detect-play').onclick = play;
     get('check-model').onclick = () => checkHealth();
+    if (pestMode) {
+        get('pest-diagnose').onclick = generatePestDiagnostic;
+        resetPestReport();
+        checkAssistant();
+    }
     window.addEventListener('pagehide', () => {
         stop(); clearTimeout(healthTimer);
         if (sourceUrl) URL.revokeObjectURL(sourceUrl);

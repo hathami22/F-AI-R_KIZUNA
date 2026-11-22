@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en" data-detection-model="pest">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pest Video Diagnostics - Nabta</title>
+  <meta name="description" content="Analyze video frames with Nabta's local caterpillar detection model.">
+  <meta name="author" content="Nabta based on Spark Admin">
+  <link rel="icon" type="image/png" href="assets/images/favicon.ico">
+  <link rel="stylesheet" href="assets/libs/bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" href="assets/libs/bootstrap-icons/bootstrap-icons.css">
+  <link rel="stylesheet" href="assets/css/main.css">
+  <link rel="stylesheet" href="assets/css/weed-detection.css">
+  <link rel="stylesheet" href="assets/css/pest-detection.css">
+</head>
+
+<body>
+  <aside class="sidebar-wrapper" id="sidebar"></aside>
+  <script src="assets/js/sidebar.js"></script>
+
+  <div class="main-wrapper">
+    <header class="navbar-custom">
+      <div class="navbar-left">
+        <button class="btn-desktop-toggle d-none d-xl-flex align-items-center justify-content-center me-3"
+          id="desktop-sidebar-toggle" aria-label="Minimize Sidebar">
+          <i class="bi bi-chevron-bar-left"></i>
+        </button>
+        <button class="sidebar-toggle-btn me-2" id="sidebar-toggle" aria-label="Toggle Navigation">
+          <i class="bi bi-list"></i>
+        </button>
+        <a href="index.html" class="text-decoration-none text-main fw-bold">Nabta Pest Diagnostics</a>
+      </div>
+    </header>
+
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Pest Video Diagnostics</h1>
+        <p class="page-subtitle">Track caterpillar detections across a local video, then request a cautious agriculture summary.</p>
+      </div>
+    </div>
+
+    <main class="detection-workspace pest-detection-workspace">
+      <div class="d-flex flex-wrap gap-3 align-items-center">
+        <span id="model-status" role="status">Checking pest model...</span>
+        <button id="check-model" class="btn btn-outline-secondary btn-sm" type="button">Check model</button>
+      </div>
+
+      <div class="detection-controls">
+        <label>Video file
+          <input id="video-file" class="form-control" type="file"
+            accept="video/mp4,video/webm,video/quicktime,.mp4,.mov,.webm">
+        </label>
+        <label>Detection confidence
+          <select id="confidence" class="form-select">
+            <option value="0.15">15%</option>
+            <option value="0.25" selected>25%</option>
+            <option value="0.4">40%</option>
+            <option value="0.6">60%</option>
+          </select>
+        </label>
+        <label>Model input size
+          <select id="image-size" class="form-select">
+            <option value="640" selected>640 px · faster</option>
+            <option value="1024">1024 px · more detail</option>
+          </select>
+        </label>
+        <button id="detect-play" class="btn btn-dark" type="button" disabled>Start detection</button>
+      </div>
+
+      <p id="detection-status" role="status" aria-live="polite">Choose a video to begin.</p>
+      <video id="source-video" hidden muted playsinline preload="auto"></video>
+      <div class="video-stage">
+        <p id="video-placeholder">Choose a video to preview it here.</p>
+        <canvas id="detection-canvas" hidden aria-label="Video frames with caterpillar detections"></canvas>
+      </div>
+      <div class="detection-timeline">
+        <label for="timeline" class="visually-hidden">Video position</label>
+        <input id="timeline" type="range" min="0" max="1" step="0.001" value="0" disabled>
+        <output id="video-position">0:00 / 0:00</output>
+      </div>
+
+      <div class="detection-metrics">
+        <div><span>Detections in frame</span><strong id="frame-count">&mdash;</strong></div>
+        <div><span>Caterpillars in frame</span><strong id="weed-count">&mdash;</strong></div>
+        <div><span>Model inference</span><strong id="inference-time">&mdash;</strong></div>
+        <div><span>Processing rate</span><strong id="processing-rate">&mdash;</strong></div>
+      </div>
+      <p class="detection-note">
+        The supplied checkpoint has one trained label: <strong>caterpillar</strong>. Boxes show model predictions,
+        not confirmed species or crop damage.
+      </p>
+      <p class="detection-note">
+        Playback follows inference speed, up to 12 sampled frames per video second. Frame-level counts can include the same
+        insect across multiple frames. The video stays in your browser; only sampled frames are sent to the local inference
+        service.
+      </p>
+
+      <section class="pest-diagnostic-panel" aria-labelledby="pest-summary-title">
+        <div class="pest-diagnostic-header">
+          <div>
+            <h2 id="pest-summary-title">Video detection summary</h2>
+            <p id="pest-summary" role="status" aria-live="polite">Analyze a video to build a frame-level report.</p>
+          </div>
+          <button id="pest-diagnose" class="btn btn-dark" type="button" disabled>
+            <i class="bi bi-stars" aria-hidden="true"></i> Generate AI diagnostic
+          </button>
+        </div>
+        <ul class="pest-class-summary" id="pest-class-summary" aria-live="polite">
+          <li>No sampled frames yet.</li>
+        </ul>
+        <div class="pest-ai-diagnostic" id="pest-ai-diagnostic" role="status" aria-live="polite">
+          AI diagnostics require OPENAI_API_KEY. Only this summary is sent to OpenAI; video frames are not.
+        </div>
+        <p class="pest-diagnostic-disclaimer">
+          This model detects only its trained label. It cannot confirm pest species, count unique insects, or diagnose
+          crop disease or damage. Verify findings in the field and consult a local agronomist for crop-specific decisions.
+        </p>
+      </section>
+    </main>
+
+    <footer class="footer-custom"><span>Nabta pest video diagnostics</span></footer>
+  </div>
+
+  <script src="assets/libs/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/weed-detection.js"></script>
+  <script src="assets/js/dashboard.js"></script>
+</body>
+
+</html>

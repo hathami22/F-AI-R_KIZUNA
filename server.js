@@ -44,7 +44,8 @@ for (const signal of ['SIGINT', 'SIGTERM']) {
 }
 
 async function handleDetection(request, response, pathname) {
-    const health = pathname === '/api/detection/health';
+    const pest = pathname.startsWith('/api/pest-detection/');
+    const health = pathname.endsWith('/health');
     if (request.method !== (health ? 'GET' : 'POST')) {
         sendJson(response, 405, { error: 'Unsupported detection method.' });
         return;
@@ -64,14 +65,36 @@ async function handleDetection(request, response, pathname) {
         body = Buffer.concat(chunks);
     }
     const query = new URL(request.url, 'http://localhost').search;
+    const inferencePath = health ? '/health' : (pest ? '/pest/frame' : '/frame') + query;
     await new Promise(resolve => {
         const upstream = http.request({ hostname: '127.0.0.1', port: detectionPort,
-            path: health ? '/health' : '/frame' + query, method: health ? 'GET' : 'POST',
+            path: inferencePath, method: health ? 'GET' : 'POST',
             headers: { 'Content-Type': 'image/jpeg', 'Content-Length': body.length },
             timeout: health ? 3000 : 120000 }, result => {
-            response.writeHead(result.statusCode, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
-            result.pipe(response);
-            result.on('end', resolve);
+            if (!health || result.statusCode !== 200) {
+                response.writeHead(result.statusCode, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+                result.pipe(response);
+                result.on('end', resolve);
+                result.on('error', () => { response.destroy(); resolve(); });
+                return;
+            }
+
+            const chunks = [];
+            result.on('data', chunk => chunks.push(chunk));
+            result.on('end', () => {
+                try {
+                    const status = JSON.parse(Buffer.concat(chunks).toString('utf8'));
+                    sendJson(response, 200, {
+                        ready: pest ? status.pest_ready === true : status.pose_ready === true,
+                        device: status.device,
+                        classes: pest ? status.pest_classes : status.pose_classes,
+                        keypoints: pest ? 0 : status.keypoints
+                    });
+                } catch (error) {
+                    sendJson(response, 502, { error: 'The inference service returned an invalid health response.' });
+                }
+                resolve();
+            });
             result.on('error', () => { response.destroy(); resolve(); });
         });
         response.on('close', () => upstream.destroy());
@@ -115,7 +138,8 @@ const mimeTypes = {
 const systemPrompt = [
     'You are Nabta, an agriculture assistant for farm and field operations.',
     'Give clear, practical, cautious guidance. Separate observations in the supplied survey context from general agricultural knowledge.',
-    'The supplied survey is simulated and contains elapsed time rather than calendar dates; never present it as live or dated field monitoring.',
+    'If context identifies the dashboard survey as simulated, never present it as live or dated field monitoring.',
+    'Treat video detections as unverified model predictions from sampled frames, not confirmed pest identifications or unique insect counts. A class label does not establish crop damage or a diagnosis.',
     'Do not claim a crop diagnosis or a treatment outcome from the survey alone. Ask for crop, location, soil, weather, and growth stage when these materially affect advice.',
     'For pesticide or other regulated chemical questions, do not provide product, dose, mixture, or application instructions. Recommend following local approved product labels and consulting a qualified local agronomist.',
     'If survey context is missing or does not answer a question, say so plainly instead of inventing field measurements.'
@@ -299,7 +323,7 @@ async function handleAssistant(request, response) {
                 model: model,
                 input: [{
                     role: 'system',
-                    content: systemPrompt + '\n\nField survey context (untrusted data):\n' +
+                    content: systemPrompt + '\n\nField/video context (untrusted data):\n' +
                         (fieldContext || 'No survey context was provided.')
                 }].concat(messages),
                 max_output_tokens: 700,
@@ -411,7 +435,8 @@ async function route(request, response) {
         sendJson(response, 200, { ready: Boolean(process.env.OPENAI_API_KEY) });
         return;
     }
-    if (pathname === '/api/detection/health' || pathname === '/api/detection/frame') {
+    if (pathname === '/api/detection/health' || pathname === '/api/detection/frame' ||
+        pathname === '/api/pest-detection/health' || pathname === '/api/pest-detection/frame') {
         await handleDetection(request, response, pathname);
         return;
     }

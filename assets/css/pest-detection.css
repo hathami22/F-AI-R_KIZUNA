@@ -1,0 +1,66 @@
+.pest-diagnostic-panel {
+    margin-top: 1.5rem;
+    padding: 1.25rem;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-xl);
+    background: var(--card-background);
+}
+
+.pest-diagnostic-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.pest-diagnostic-header h2 {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.pest-diagnostic-header p {
+    margin: 0.4rem 0 0;
+    color: var(--text-muted-green);
+    font-size: 0.82rem;
+}
+
+.pest-class-summary {
+    display: grid;
+    gap: 0.5rem;
+    margin: 1rem 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.pest-class-summary li {
+    padding: 0.75rem;
+    border-radius: var(--radius-md);
+    background: var(--bs-body-bg);
+    color: var(--text-main);
+    font-size: 0.82rem;
+    line-height: 1.5;
+}
+
+.pest-ai-diagnostic {
+    margin-top: 1rem;
+    padding: 0.9rem;
+    border-radius: var(--radius-md);
+    background: #F3F8EA;
+    color: var(--brand-forest-medium);
+    font-size: 0.85rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.pest-diagnostic-disclaimer {
+    margin: 0.9rem 0 0;
+    color: var(--text-muted-green);
+    font-size: 0.76rem;
+    line-height: 1.6;
+}
+
+.pest-detection-workspace .video-stage canvas {
+    max-width: 100%;
+}
