@@ -23,6 +23,37 @@ The dashboard's non-AI pages can still be served with `python -m http.server 800
 
 The dashboard uses the simulated weed detections, GPS route, and field-density GeoJSON in `assets/data/`. These files contain elapsed survey time rather than calendar dates, so the date-range picker is a reporting-period control and does not filter the single simulated run.
 
+## Robot Simulation
+
+Open **Robot Simulation** from the sidebar to run autonomous movement, adaptive speed,
+laser targeting, crop-proximity skips, and GPS weed-density mapping. All plants, positions,
+and treatment outcomes are simulated.
+
+After a run finishes, select **Use completed run in dashboard**. The dashboard, tables,
+alerts, and assistant survey context will use that completed run on their next page load.
+Use the **Dashboard survey** selector to switch between the bundled survey and the latest
+completed simulation. The latest run is stored in this browser on this site's origin.
+CSV and GeoJSON exports are also available from the simulation page.
+
+## Video Weed Detection
+
+Install the Python inference dependencies once with `python -m pip install -r inference/requirements.txt`.
+Place the trained one-stem YOLO pose checkpoint at `models/best.pt`, or set `NABTA_MODEL_PATH`
+to its absolute path. The model file is excluded from Git. Set `NABTA_PYTHON` when using
+a particular Python interpreter or virtual environment.
+
+Start the website with `node server.js` and open **Weed Detection** in the sidebar.
+The Node server starts the local inference service when the page checks model status.
+Choose an MP4, wait for **Model ready**, and select **Start detection**. Pause, seek,
+adjust confidence, or choose the 640-pixel mode for faster processing. Video playback
+follows inference speed, up to 12 sampled frames per video second, with synchronized
+boxes and stem points. Processing uses CUDA when supported by the installed PyTorch,
+otherwise CPU. The video remains in the browser and sampled JPEG frames go to the local
+service through the website. Frames are processed in memory.
+
+The inference port defaults to 8091 and can be changed with `NABTA_DETECTION_PORT`.
+The Agriculture Assistant and video inference have separate runtime dependencies.
+
 ## Agriculture Assistant
 
 Open **Agriculture Assistant** from the sidebar to ask questions about the survey or general agricultural topics. The browser sends the conversation and a compact summary of the simulated survey to the local Node server, which forwards the request to OpenAI. Conversations are not stored by the dashboard. Verify AI suggestions against local conditions and regulations; they are not a crop diagnosis or pesticide-use instructions.

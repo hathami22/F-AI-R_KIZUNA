@@ -1,0 +1,84 @@
+.robot-simulation {
+    padding: 0 24px 24px;
+    color: var(--text-main, #182923);
+}
+
+.robot-simulation .controls,
+.robot-simulation .export {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.robot-simulation button,
+.robot-simulation select,
+.robot-simulation input[type="number"] {
+    font: inherit;
+    font-size: 14px;
+    padding: 10px 12px;
+    border: 1px solid #a5b5ac;
+    border-radius: 6px;
+    color: #183329;
+    background: #fff;
+    min-height: 42px;
+}
+
+.robot-simulation button { cursor: pointer; }
+.robot-simulation button:disabled { opacity: .5; cursor: default; }
+.robot-simulation button.primary { background: #072f1f; color: white; }
+.robot-simulation button:focus-visible,
+.robot-simulation input:focus-visible,
+.robot-simulation select:focus-visible { outline: 3px solid #d68b21; outline-offset: 2px; }
+.robot-simulation label { font-size: 14px; }
+.robot-simulation .controls label { display: flex; flex-direction: column; gap: 5px; }
+.robot-simulation input[type="number"] { width: 130px; }
+.robot-simulation select { min-width: 90px; }
+.robot-simulation .status { font-weight: 600; margin-bottom: 16px; }
+.robot-simulation .metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin-bottom: 20px;
+    background: white;
+    border: 1px solid #dce5df;
+    border-radius: 8px;
+}
+.robot-simulation .metric { padding: 18px; border-right: 1px solid #dce5df; }
+.robot-simulation .metric:last-child { border-right: 0; }
+.robot-simulation small { font-size: 14px; color: #4b6055; }
+.robot-simulation .value { font-size: 25px; font-weight: 600; margin-top: 8px; font-variant-numeric: tabular-nums; }
+.robot-simulation .treatment { display: flex; flex-wrap: wrap; gap: 28px; margin-bottom: 20px; padding: 16px 20px; background: white; border-left: 3px solid #e47722; }
+.robot-simulation .treatment strong { display: block; margin-top: 5px; font-size: 24px; }
+.robot-simulation .layout { display: grid; grid-template-columns: minmax(0, 1fr) 270px; gap: 20px; }
+.robot-simulation .panel { min-width: 0; padding: 20px; border: 1px solid #dce5df; background: white; border-radius: 8px; }
+.robot-simulation h2 { font-size: 17px; font-weight: 600; margin: 0 0 16px; }
+.robot-simulation .map { display: block; width: 100%; height: 460px; background: #eef3ef; }
+.robot-simulation .map-note,
+.robot-simulation #cellInfo { margin: 12px 0; font-size: 14px; line-height: 1.6; }
+.robot-simulation .legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 14px; }
+.robot-simulation .swatch { display: inline-block; width: 12px; height: 12px; margin-right: 5px; border: 1px solid #a5b5ac; }
+.robot-simulation dt { font-size: 14px; color: #4b6055; font-weight: 400; }
+.robot-simulation dd { margin: 5px 0 18px; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.robot-simulation .plot { display: block; width: 100%; height: 100px; }
+.robot-simulation .laser-view { display: block; width: 100%; height: 150px; margin-bottom: 24px; background: #f3f6f4; }
+.robot-simulation .export { margin-top: 20px; }
+.robot-simulation details { margin-top: 20px; line-height: 1.7; }
+.robot-simulation summary { cursor: pointer; }
+.robot-simulation details p { margin-top: 12px; }
+.robot-simulation #runSaveStatus { margin-top: 18px; }
+
+@media (max-width: 1150px) {
+    .robot-simulation .layout { grid-template-columns: 1fr; }
+    .robot-simulation .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .robot-simulation .metric { border-bottom: 1px solid #dce5df; }
+}
+
+@media (max-width: 550px) {
+    .robot-simulation { padding: 0 12px 20px; }
+    .robot-simulation .panel { padding: 14px; }
+    .robot-simulation .map { height: 280px; }
+    .robot-simulation .value { font-size: 22px; }
+    .robot-simulation .metric { padding: 12px; }
+    .robot-simulation input[type="number"] { width: 120px; }
+}

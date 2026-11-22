@@ -3,6 +3,7 @@
 const http = require('node:http');
 const fs = require('node:fs/promises');
 const path = require('node:path');
+const { spawn } = require('node:child_process');
 
 const root = __dirname;
 const host = process.env.HOST || '127.0.0.1';
@@ -13,6 +14,81 @@ const maxMessageChars = 5000;
 const maxContextChars = 6000;
 const maxRequestsPerMinute = 12;
 const requestWindows = new Map();
+const detectionPort = Number(process.env.NABTA_DETECTION_PORT || 8091);
+let inferenceProcess;
+let lastInferenceStart = 0;
+let inferenceError = '';
+
+function startInference() {
+    if (inferenceProcess || Date.now() - lastInferenceStart < 15000) return;
+    lastInferenceStart = Date.now();
+    inferenceError = '';
+    const child = spawn(process.env.NABTA_PYTHON || 'python',
+        [path.join(root, 'inference', 'server.py')], { cwd: root, windowsHide: true });
+    inferenceProcess = child;
+    child.stdout.on('data', chunk => process.stdout.write('[Detection] ' + chunk));
+    child.stderr.on('data', chunk => {
+        inferenceError = String(chunk).slice(-2000);
+        process.stderr.write('[Detection] ' + chunk);
+    });
+    child.on('error', error => { inferenceError = error.message; });
+    child.on('close', () => { if (inferenceProcess === child) inferenceProcess = undefined; });
+}
+
+process.on('exit', () => { if (inferenceProcess) inferenceProcess.kill(); });
+for (const signal of ['SIGINT', 'SIGTERM']) {
+    process.on(signal, () => {
+        if (inferenceProcess) inferenceProcess.kill();
+        process.exit(0);
+    });
+}
+
+async function handleDetection(request, response, pathname) {
+    const health = pathname === '/api/detection/health';
+    if (request.method !== (health ? 'GET' : 'POST')) {
+        sendJson(response, 405, { error: 'Unsupported detection method.' });
+        return;
+    }
+    let body = Buffer.alloc(0);
+    if (!health) {
+        const chunks = [];
+        let bytes = 0;
+        for await (const chunk of request) {
+            bytes += chunk.length;
+            if (bytes <= 8 * 1024 * 1024) chunks.push(chunk);
+        }
+        if (bytes === 0 || bytes > 8 * 1024 * 1024) {
+            sendJson(response, bytes ? 413 : 400, { error: 'Provide an image frame up to 8 MB.' });
+            return;
+        }
+        body = Buffer.concat(chunks);
+    }
+    const query = new URL(request.url, 'http://localhost').search;
+    await new Promise(resolve => {
+        const upstream = http.request({ hostname: '127.0.0.1', port: detectionPort,
+            path: health ? '/health' : '/frame' + query, method: health ? 'GET' : 'POST',
+            headers: { 'Content-Type': 'image/jpeg', 'Content-Length': body.length },
+            timeout: health ? 3000 : 120000 }, result => {
+            response.writeHead(result.statusCode, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+            result.pipe(response);
+            result.on('end', resolve);
+            result.on('error', () => { response.destroy(); resolve(); });
+        });
+        response.on('close', () => upstream.destroy());
+        upstream.on('timeout', () => upstream.destroy(new Error('Inference timed out.')));
+        upstream.on('error', () => {
+            startInference();
+            if (!response.headersSent && !response.destroyed) sendJson(response, 503, {
+                ready: false,
+                error: inferenceProcess ? 'The model is starting. Check again in a few seconds.'
+                    : 'Detection service could not start. Install inference/requirements.txt and check the server terminal.',
+                diagnostic: inferenceProcess ? undefined : inferenceError
+            });
+            resolve();
+        });
+        upstream.end(body);
+    });
+}
 const rateLimitCleanup = setInterval(function () {
     const now = Date.now();
     for (const [address, window] of requestWindows) {
@@ -295,7 +371,8 @@ async function serveStatic(request, response, pathname) {
     if (path.isAbsolute(relativeToRoot) || relativeToRoot === '..' ||
         relativeToRoot.startsWith('..' + path.sep) ||
         pathSegments.some(function (segment) { return segment.startsWith('.'); }) ||
-        path.basename(filePath).toLowerCase() === 'server.js') {
+        path.basename(filePath).toLowerCase() === 'server.js' ||
+        ['models', 'inference'].includes(pathSegments[0].toLowerCase())) {
         sendJson(response, 404, { error: 'Not found.' });
         return;
     }
@@ -334,6 +411,10 @@ async function route(request, response) {
         sendJson(response, 200, { ready: Boolean(process.env.OPENAI_API_KEY) });
         return;
     }
+    if (pathname === '/api/detection/health' || pathname === '/api/detection/frame') {
+        await handleDetection(request, response, pathname);
+        return;
+    }
     if (pathname === '/api/assistant') {
         await handleAssistant(request, response);
         return;
@@ -343,6 +424,9 @@ async function route(request, response) {
 
 if (!Number.isInteger(port) || port < 1 || port > 65535) {
     throw new Error('PORT must be an integer between 1 and 65535.');
+}
+if (!Number.isInteger(detectionPort) || detectionPort < 1 || detectionPort > 65535) {
+    throw new Error('NABTA_DETECTION_PORT must be an integer between 1 and 65535.');
 }
 
 const server = http.createServer(function (request, response) {

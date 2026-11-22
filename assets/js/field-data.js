@@ -2,6 +2,98 @@
     'use strict';
 
     let dataPromise;
+    const simulationStorageKey = 'nabta.simulation.v1';
+    let storageWarning = '';
+
+    function readSelection() {
+        let stored;
+        try {
+            stored = localStorage.getItem(simulationStorageKey);
+        } catch (error) {
+            storageWarning = 'Browser storage is unavailable. Showing supplied survey files.';
+            return { version: 1, selected: 'bundled', run: null };
+        }
+        if (!stored) return { version: 1, selected: 'bundled', run: null };
+        const selection = JSON.parse(stored);
+        if (selection.version !== 1 || !['bundled', 'simulation'].includes(selection.selected)) {
+            throw new Error('The saved survey selection is invalid.');
+        }
+        return selection;
+    }
+
+    function parseSimulation(run) {
+        if (!run || typeof run.weedsCsv !== 'string' || typeof run.routeCsv !== 'string'
+            || typeof run.densityJson !== 'string') {
+            throw new Error('The saved simulation is incomplete.');
+        }
+        const data = {
+            weeds: parseWeeds(run.weedsCsv),
+            route: parseRoute(run.routeCsv),
+            densityCells: parseDensity(run.densityJson)
+        };
+        data.summary = summarize(data);
+        if (data.summary.totalDetections !== data.summary.densityWeedCount) {
+            throw new Error('The simulation detections and density map disagree.');
+        }
+        return data;
+    }
+
+    function saveSimulation(run) {
+        parseSimulation(run);
+        const saved = Object.assign({}, run, { savedAt: new Date().toISOString() });
+        // One atomic storage update switches the dataset and saves its full snapshot.
+        localStorage.setItem(simulationStorageKey, JSON.stringify({
+            version: 1, selected: 'simulation', run: saved
+        }));
+        dataPromise = undefined;
+        return saved;
+    }
+
+    function showSurveySelector() {
+        const header = document.querySelector('.page-header');
+        if (!header) return;
+        const container = document.createElement('div');
+        container.className = 'mx-4 mb-3 d-flex flex-wrap align-items-center gap-2';
+        const label = document.createElement('label');
+        label.htmlFor = 'active-survey';
+        label.className = 'small fw-semibold';
+        label.textContent = 'Dashboard survey';
+        const select = document.createElement('select');
+        select.id = 'active-survey';
+        select.className = 'form-select form-select-sm w-auto';
+        const message = document.createElement('span');
+        message.className = 'small text-muted';
+        message.setAttribute('role', 'status');
+        select.add(new Option('Bundled simulated survey', 'bundled'));
+        try {
+            const selection = readSelection();
+            if (selection.run) {
+                select.add(new Option('Latest completed simulation', 'simulation'));
+            }
+            select.value = selection.selected;
+            message.textContent = selection.selected === 'simulation'
+                ? 'Saved in this browser · ' + new Date(selection.run.savedAt).toLocaleString()
+                : storageWarning || 'Supplied survey files';
+        } catch (error) {
+            message.textContent = error.message;
+            message.className = 'small text-danger';
+        }
+        select.addEventListener('change', function () {
+            try {
+                const selection = readSelection();
+                selection.selected = select.value;
+                localStorage.setItem(simulationStorageKey, JSON.stringify(selection));
+                location.reload();
+            } catch (error) {
+                message.textContent = 'Could not change the survey. ' + error.message;
+                message.className = 'small text-danger';
+            }
+        });
+        container.append(label, select, message);
+        header.insertAdjacentElement('afterend', container);
+    }
+
+    document.addEventListener('DOMContentLoaded', showSurveySelector);
 
     function parseCsvRow(line) {
         const cells = [];
@@ -225,6 +317,16 @@
 
     function load() {
         if (!dataPromise) {
+            try {
+                const selection = readSelection();
+                if (selection.selected === 'simulation') {
+                    dataPromise = Promise.resolve(parseSimulation(selection.run));
+                    return dataPromise;
+                }
+            } catch (error) {
+                dataPromise = Promise.reject(error);
+                return dataPromise;
+            }
             dataPromise = Promise.all([
                 readText('assets/data/simulated_weed_gps.csv'),
                 readText('assets/data/simulated_gps_route.csv'),
@@ -244,6 +346,7 @@
 
     global.NabtaFieldData = {
         load: load,
-        summarize: summarize
+        summarize: summarize,
+        saveSimulation: saveSimulation
     };
 }(window));

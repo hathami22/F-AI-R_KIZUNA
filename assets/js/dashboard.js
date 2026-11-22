@@ -29,12 +29,14 @@ document.addEventListener('DOMContentLoaded', function () {
             e.stopPropagation();
             sidebar.classList.toggle('show');
             overlay.classList.toggle('show', sidebar.classList.contains('show'));
+            toggleBtn.setAttribute('aria-expanded', String(sidebar.classList.contains('show')));
         });
 
         // Close sidebar when clicking on backdrop overlay
         overlay.addEventListener('click', function () {
             sidebar.classList.remove('show');
             overlay.classList.remove('show');
+            toggleBtn.setAttribute('aria-expanded', 'false');
         });
     }
 
@@ -361,6 +363,14 @@ document.addEventListener('DOMContentLoaded', function () {
     if (desktopToggleBtn) {
         desktopToggleBtn.addEventListener('click', function () {
             document.body.classList.toggle('sidebar-minimized');
+            const minimized = document.body.classList.contains('sidebar-minimized');
+            desktopToggleBtn.setAttribute('aria-expanded', String(!minimized));
+            desktopToggleBtn.setAttribute('aria-label', minimized ? 'Expand Sidebar' : 'Minimize Sidebar');
+            try {
+                localStorage.setItem('nabta.sidebarMinimized', String(minimized));
+            } catch (error) {
+                // Keep the toggle usable when browser storage is unavailable.
+            }
             
             // Toggle icon direction
             const icon = desktopToggleBtn.querySelector('i');

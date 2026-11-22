@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Robot Simulation - Nabta</title>
+  <meta name="description" content="Run the Nabta laser-weeding simulation and map a synthetic field.">
+  <meta name="author" content="Nabta based on Spark Admin">
+  <link rel="icon" type="image/png" href="assets/images/favicon.ico">
+  <link rel="stylesheet" href="assets/libs/bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" href="assets/libs/bootstrap-icons/bootstrap-icons.css">
+  <link rel="stylesheet" href="assets/css/main.css">
+  <link rel="stylesheet" href="assets/css/field-simulation.css">
+</head>
+
+<body>
+  <aside class="sidebar-wrapper" id="sidebar"></aside>
+  <script src="assets/js/sidebar.js"></script>
+
+  <div class="main-wrapper">
+    <header class="navbar-custom">
+      <div class="navbar-left">
+        <button class="btn-desktop-toggle d-none d-xl-flex align-items-center justify-content-center me-3"
+          id="desktop-sidebar-toggle" aria-label="Minimize Sidebar">
+          <i class="bi bi-chevron-bar-left"></i>
+        </button>
+        <button class="sidebar-toggle-btn me-2" id="sidebar-toggle" aria-label="Toggle Navigation">
+          <i class="bi bi-list"></i>
+        </button>
+        <a href="index.html" class="text-decoration-none text-main fw-bold">Nabta Robot Simulation</a>
+      </div>
+    </header>
+
+    <div class="page-header"><div><h1 class="page-title">Robot Simulation</h1><p class="page-subtitle">Autonomous laser targeting, adaptive speed, and GPS weed mapping.</p></div></div>
+    <main class="robot-simulation"><div class="controls"><button id="start" class="primary">Start survey</button><button id="reset">Reset</button><label>Playback <select id="rate"><option>1</option><option selected>5</option><option>20</option><option>100</option></select> ×</label><label>Laser capacity, pulses/s <input id="capacity" required type="number" min="0.5" max="20" step="0.5" value="2"></label><label>Origin latitude <input id="lat" required type="number" min="-80" max="80" step="0.00001" value="36.8"></label><label>Origin longitude <input id="lon" required type="number" min="-179" max="179" step="0.00001" value="10.18"></label><button id="origin">Apply origin & reset</button></div>
+<p id="message" role="status" class="status">Ready to survey</p>
+<div class="metrics"><div class="metric"><small>Robot speed</small><div id="speed" class="value">0.00 m/s</div></div><div class="metric"><small>Survey coverage</small><div id="coverage" class="value">0.0%</div></div><div class="metric"><small>Unique weeds mapped</small><div id="count" class="value">0</div></div><div class="metric"><small>Surveyed density</small><div id="density" class="value">—</div></div></div>
+<div class="treatment"><div><small>Simulated laser hits</small><strong id="treated">0</strong></div><div><small>Skipped near crops</small><strong id="protected">0</strong></div><div><small>Missed targets</small><strong id="missed">0</strong></div></div><div class="layout"><section class="panel"><h2>Weed density · weeds/m²</h2><canvas id="map" class="map" aria-label="Field density map with robot route and GPS position"></canvas><p class="map-note">Orange dots show simulated hits. Green marks show crop stems. Density colors retain the initial weed count.</p><div class="legend"><span><i class="swatch" style="background:#e0e5e1"></i>Unsurveyed</span><span><i class="swatch" style="background:#e2efe3"></i>0–1</span><span><i class="swatch" style="background:#83b28d"></i>1–3</span><span><i class="swatch" style="background:#39804e"></i>3–6</span><span><i class="swatch" style="background:#174d2c"></i>6+</span></div><p id="cellInfo">Select a map cell to inspect its GPS location, count, and surveyed area.</p><label><input id="truth" type="checkbox" style="width:auto"> Show synthetic ground truth</label></section>
+<aside class="panel"><h2>Robot telemetry</h2><dl><dt>State</dt><dd id="state">Ready</dd><dt>GPS latitude / longitude</dt><dd id="gps"></dd><dt>Simulation time</dt><dd id="time">0 s</dd><dt>Look-ahead density</dt><dd id="ahead">0 weeds/m²</dd><dt>Target speed</dt><dd id="target">1.20 m/s</dd><dt>Coverage swath</dt><dd>2 m</dd></dl><h2>Laser targeting</h2><p id="laserState">Idle</p><canvas id="laserView" class="laser-view" aria-label="Schematic of laser targeting a weed stem"></canvas><h2>Speed history · m/s</h2><canvas id="chart" class="plot" aria-label="Speed history from zero to 1.2 metres per second"></canvas><small>Last 60 GPS samples · 1 Hz</small></aside></div>
+<p id="runSaveStatus" role="status" aria-live="polite"></p><div class="export"><button id="csv">Export GPS route CSV</button><button id="geo">Export density GeoJSON</button><button id="weeds">Export weed GPS CSV</button><button id="activateRun" disabled>Use completed run in dashboard</button><a href="index.html" class="btn btn-outline-secondary">Open dashboard</a></div>
+<details><summary>Simulation assumptions and real-world integration</summary><p>This is a software demonstration with synthetic crops, weeds, and GPS. Generated plants have perfect detection and stable identities. The targeting inset is schematic. YOLO inference, laser optics, power, biological efficacy, and physical safety systems require separate hardware validation. Each plant is counted once. Grid density is unique weeds divided by surveyed area. Unsurveyed cells export a null density. Partial cells use only their surveyed fraction.</p><p>Speed target = min(1.2 m/s, processing capacity ÷ (look-ahead weeds/m² × 2 m swath)). Acceleration and braking are bounded, so actual speed can temporarily exceed the target. Processing capacity is an assumed planning value. Each virtual pulse marks one weed as treated. Targets within 0.15 m of a crop stem are skipped. A 1 m fore-aft reach limits targeting, and missed weeds are reported. Pulse counts represent assumed treatment success in this demonstration.</p><p>Rows connect through a four-second headland movement with acceleration and braking. Heading changes use a simplified kinematic model. GPS is an ideal local projection with no receiver noise. The default origin is an editable example near Tunis. All exported geometry is simulated WGS84 longitude/latitude.</p><p>For a real field, record timestamped GNSS position, heading, camera pose, image calibration, and detections. Project stem pixels onto the ground using calibration and depth or a ground-plane model. Associate detections across frames to count each weed once. Position accuracy must support the grid size. An MP4 alone may lack the required GPS and calibration.</p></details>
+</main>
+    <footer class="footer-custom"><span>Simulated plants, GPS, and treatment outcomes</span></footer>
+  </div>
+  <script src="assets/libs/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/field-data.js"></script>
+  <script src="assets/js/field-simulation-engine.js"></script>
+  <script src="assets/js/field-simulation.js"></script>
+  <script src="assets/js/dashboard.js"></script>
+</body></html>
