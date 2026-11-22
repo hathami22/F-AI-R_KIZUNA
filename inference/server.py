@@ -14,11 +14,13 @@ from fastapi import FastAPI, HTTPException, Request
 from PIL import Image, UnidentifiedImageError
 from starlette.concurrency import run_in_threadpool
 from ultralytics import YOLO
+from plant_disease import PlantDiseaseClassifier
 
 
 MODEL_DIRECTORY = Path(__file__).resolve().parents[1] / 'models'
 POSE_MODEL_PATH = Path(os.environ.get('NABTA_MODEL_PATH', MODEL_DIRECTORY / 'best.pt'))
 PEST_MODEL_PATH = Path(os.environ.get('NABTA_PEST_MODEL_PATH', MODEL_DIRECTORY / 'pest_best.pt'))
+DISEASE_DIRECTORY = Path(os.environ.get('NABTA_DISEASE_MODEL_DIR', MODEL_DIRECTORY / 'plant_disease'))
 MAX_FRAME_BYTES = 8 * 1024 * 1024
 Image.MAX_IMAGE_PIXELS = 16000000
 torch.set_num_threads(min(4, os.cpu_count() or 1))
@@ -28,6 +30,14 @@ app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
 
 pose_model = None
 pest_model = None
+disease_model = None
+disease_error = None
+if (DISEASE_DIRECTORY / 'model_config.json').is_file():
+    try:
+        disease_model = PlantDiseaseClassifier(DISEASE_DIRECTORY)
+    except Exception as error:
+        disease_error = 'Plant-health model could not load. Check its weights and metadata in the server terminal.'
+        print(f'Plant-health loading error: {error}', flush=True)
 if POSE_MODEL_PATH.is_file():
     pose_model = YOLO(str(POSE_MODEL_PATH))
     if pose_model.task != 'pose' or list(pose_model.model.kpt_shape) != [1, 3]:
@@ -38,19 +48,24 @@ if PEST_MODEL_PATH.is_file():
     if pest_model.task != 'detect':
         raise RuntimeError('NABTA_PEST_MODEL_PATH must be an object-detection model.')
     pest_model.predict(Image.new('RGB', (640, 640)), imgsz=640, device=device, verbose=False)
-if pose_model is None and pest_model is None:
+if pose_model is None and pest_model is None and disease_model is None:
     raise FileNotFoundError(
         'No model checkpoints found. Add models/best.pt for stem detection or '
-        'models/pest_best.pt for caterpillar detection.'
+        'models/pest_best.pt for caterpillar detection, or a plant-health deployment bundle '
+        'in models/plant_disease.'
     )
 
 
 @app.get('/health')
 def health():
     return {
-        'ready': pose_model is not None or pest_model is not None,
+        'ready': pose_model is not None or pest_model is not None or disease_model is not None,
         'pose_ready': pose_model is not None,
         'pest_ready': pest_model is not None,
+        'disease_ready': disease_model is not None,
+        'disease_plants': list(disease_model.plant_to_classes) if disease_model is not None else [],
+        'disease_error': disease_error,
+        'disease_threshold': disease_model.cfg['confidence_threshold'] if disease_model is not None else None,
         'device': 'CUDA' if device == 0 else 'CPU',
         'pose_classes': list(pose_model.names.values()) if pose_model is not None else [],
         'pest_classes': list(pest_model.names.values()) if pest_model is not None else [],
@@ -151,6 +166,32 @@ async def pest_frame(request: Request, confidence: float = 0.25, image_size: int
     if pest_model is None:
         raise HTTPException(503, 'The caterpillar detection model is not installed.')
     return await run_in_threadpool(detect_pests, await read_frame(request), confidence, image_size)
+
+
+def classify_disease(content, plant):
+    if disease_model is None:
+        raise HTTPException(503, disease_error or 'The plant-health model is not installed.')
+    if plant.strip().lower() not in disease_model._plants:
+        raise HTTPException(400, 'Choose a supported crop.')
+    if not lock.acquire(blocking=False):
+        raise HTTPException(429, 'Inference is busy. Try again after the current request finishes.')
+    try:
+        # Reuse image validation and the deployment bundle's preprocessing unchanged.
+        image = decode_frame(content)
+        image.close()
+        start = time.perf_counter()
+        result = disease_model.predict(io.BytesIO(content), plant)
+        result['inference_ms'] = round((time.perf_counter() - start) * 1000, 1)
+        result['confidence_threshold'] = disease_model.cfg['confidence_threshold']
+        result['validation_note'] = disease_model.cfg['note']
+        return result
+    finally:
+        lock.release()
+
+
+@app.post('/disease/predict')
+async def disease_predict(request: Request, plant: str):
+    return await run_in_threadpool(classify_disease, await read_frame(request), plant)
 
 
 if __name__ == '__main__':

@@ -13,6 +13,7 @@
                 ['simulation.html', 'Robot Simulation', 'bi-robot', 'menu-simulation'],
                 ['weed-detection.html', 'Weed Detection', 'bi-camera-video', 'menu-detection'],
                 ['pest-detection.html', 'Pest Video Diagnostics', 'bi-bug', 'menu-pestdetection'],
+                ['plant-health.html', 'Plant Health', 'bi-flower1', 'menu-planthealth'],
                 ['field-data.html', 'Field Data', 'bi-table', 'menu-fielddata'],
                 ['field-assistant.html', 'Agriculture Assistant', 'bi-chat-dots', 'menu-fieldassistant'],
                 ['ui-forms.html', 'Survey Filters', 'bi-input-cursor-text', 'menu-uiforms'],

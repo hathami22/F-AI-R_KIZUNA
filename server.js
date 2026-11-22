@@ -45,6 +45,7 @@ for (const signal of ['SIGINT', 'SIGTERM']) {
 
 async function handleDetection(request, response, pathname) {
     const pest = pathname.startsWith('/api/pest-detection/');
+    const disease = pathname.startsWith('/api/plant-health/');
     const health = pathname.endsWith('/health');
     if (request.method !== (health ? 'GET' : 'POST')) {
         sendJson(response, 405, { error: 'Unsupported detection method.' });
@@ -65,7 +66,7 @@ async function handleDetection(request, response, pathname) {
         body = Buffer.concat(chunks);
     }
     const query = new URL(request.url, 'http://localhost').search;
-    const inferencePath = health ? '/health' : (pest ? '/pest/frame' : '/frame') + query;
+    const inferencePath = health ? '/health' : (disease ? '/disease/predict' : pest ? '/pest/frame' : '/frame') + query;
     await new Promise(resolve => {
         const upstream = http.request({ hostname: '127.0.0.1', port: detectionPort,
             path: inferencePath, method: health ? 'GET' : 'POST',
@@ -84,6 +85,17 @@ async function handleDetection(request, response, pathname) {
             result.on('end', () => {
                 try {
                     const status = JSON.parse(Buffer.concat(chunks).toString('utf8'));
+                    if (disease) {
+                        sendJson(response, 200, {
+                            ready: status.disease_ready === true,
+                            device: status.device,
+                            plants: status.disease_plants || [],
+                            confidence_threshold: status.disease_threshold,
+                            error: status.disease_error || (status.disease_ready ? undefined : 'The plant-health model is not installed.')
+                        });
+                        resolve();
+                        return;
+                    }
                     sendJson(response, 200, {
                         ready: pest ? status.pest_ready === true : status.pose_ready === true,
                         device: status.device,
@@ -436,7 +448,8 @@ async function route(request, response) {
         return;
     }
     if (pathname === '/api/detection/health' || pathname === '/api/detection/frame' ||
-        pathname === '/api/pest-detection/health' || pathname === '/api/pest-detection/frame') {
+        pathname === '/api/pest-detection/health' || pathname === '/api/pest-detection/frame' ||
+        pathname === '/api/plant-health/health' || pathname === '/api/plant-health/predict') {
         await handleDetection(request, response, pathname);
         return;
     }

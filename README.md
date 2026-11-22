@@ -35,6 +35,12 @@ Use the **Dashboard survey** selector to switch between the bundled survey and t
 completed simulation. The latest run is stored in this browser on this site's origin.
 CSV and GeoJSON exports are also available from the simulation page.
 
+The survey workspace includes toggleable route/crop/ground-truth layers, coverage
+progress, treatment counts, and actual-versus-target speed history. Select a map cell
+with the mouse or focus the map and use arrow keys to inspect GPS and weed density.
+Expand **Survey settings** to adjust laser capacity or reset with a different GPS origin.
+All plants, positions, and treatment outcomes in this workspace are synthetic.
+
 ## Video Weed Detection
 
 Install the Python inference dependencies once with `python -m pip install -r inference/requirements.txt`.
@@ -68,6 +74,22 @@ optional AI diagnostic sends only that compact report to the Node API/OpenAI; vi
 frames are not sent to OpenAI. Configure `OPENAI_API_KEY` to enable it. This checkpoint
 has one trained label (`caterpillar`) and its archive metadata declares AGPL-3.0; verify
 the applicable terms before redistributing the checkpoint.
+
+## Plant Health
+
+Open **Plant Health** from the sidebar, choose a leaf photo and its crop, then select
+**Analyze leaf**. The local MobileNetV3-Large classifier supports Apple, Corn, Grape,
+Tomato, and Strawberry, with 24 condition/healthy classes in total. Results include
+the predicted condition, confidence within the selected crop's classes, and up to
+three alternatives. Predictions below the bundle's 60% threshold are flagged as uncertain.
+The model was trained on PlantVillage and has not been validated on field-camera images.
+
+The deployment metadata is in `models/plant_disease/`. Place the matching
+`mobilenetv3_large_robust_weights.pth` file in that directory before starting the server.
+The weights are excluded from Git. `NABTA_DISEASE_MODEL_DIR` can select another complete
+deployment bundle. The existing inference requirements also provide this model's
+PyTorch, torchvision, and Pillow dependencies. Restart `node server.js` after adding
+the bundle. Images are processed in memory through the local inference service.
 
 ## Agriculture Assistant
 

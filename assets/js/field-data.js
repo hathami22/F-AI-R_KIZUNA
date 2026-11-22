@@ -50,6 +50,7 @@
     }
 
     function showSurveySelector() {
+        if (document.body.dataset.surveySelector === 'hidden') return;
         const header = document.querySelector('.page-header');
         if (!header) return;
         const container = document.createElement('div');

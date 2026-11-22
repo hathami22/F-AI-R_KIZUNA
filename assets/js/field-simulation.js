@@ -5,6 +5,7 @@ let last = performance.now();
 let transform;
 let lastShotId = null;
 let flashUntil = 0;
+let selectedCell = null;
 
 function resizeCanvas(canvas) {
   const ratio = window.devicePixelRatio || 1;
@@ -47,7 +48,7 @@ function draw() {
     for (const weed of sim.weeds) {ctx.beginPath(); ctx.arc(...point(weed.x, weed.y), 1.5, 0, Math.PI * 2); ctx.fill();}
   }
   ctx.fillStyle = '#2a6150';
-  for (const crop of sim.crops) {
+  for (const crop of get('showCrops').checked ? sim.crops : []) {
     const [x, y] = point(crop.x, crop.y);
     ctx.fillRect(x - 1, y - 2, 2, 4);
   }
@@ -58,8 +59,15 @@ function draw() {
   }
   ctx.strokeStyle = '#b77b20'; ctx.lineWidth = 2;
   ctx.beginPath();
-  sim.track.forEach((p, index) => index ? ctx.lineTo(...point(p.x_m, p.y_m)) : ctx.moveTo(...point(p.x_m, p.y_m)));
+  if (get('showRoute').checked) {
+    sim.track.forEach((p, index) => index ? ctx.lineTo(...point(p.x_m, p.y_m)) : ctx.moveTo(...point(p.x_m, p.y_m)));
+  }
   ctx.stroke();
+  if (selectedCell) {
+    const [sx, sy] = point(selectedCell.x, selectedCell.y + 1);
+    ctx.strokeStyle = '#a45010'; ctx.lineWidth = 2;
+    ctx.strokeRect(sx, sy, scale, scale);
+  }
   const [rx, ry] = point(sim.x, sim.y);
   const shot = sim.shots[sim.shots.length - 1];
   if (shot && shot.id !== lastShotId) {
@@ -72,20 +80,34 @@ function draw() {
     ctx.beginPath(); ctx.moveTo(rx, ry); ctx.lineTo(...point(shot.x, shot.y)); ctx.stroke();
     ctx.beginPath(); ctx.arc(...point(shot.x, shot.y), 5, 0, Math.PI * 2); ctx.stroke();
   }
-  ctx.fillStyle = '#162d22'; ctx.fillRect(rx - 7, ry - 5, 14, 10);
-  ctx.strokeStyle = 'white'; ctx.lineWidth = 2; ctx.strokeRect(rx - 7, ry - 5, 14, 10);
-  ctx.fillStyle = '#d59128'; ctx.beginPath();
   const changingRow = sim.turnRemaining > 0;
-  ctx.arc(rx + (changingRow ? 0 : sim.lane % 2 === 0 ? 8 : -8), ry - (changingRow ? 8 : 0), 3, 0, Math.PI * 2); ctx.fill();
+  ctx.save(); ctx.translate(rx, ry);
+  ctx.rotate(changingRow ? -Math.PI / 2 : sim.lane % 2 === 0 ? 0 : Math.PI);
+  ctx.fillStyle = '#162d22';
+  ctx.fillRect(-8, -9, 15, 4); ctx.fillRect(-8, 5, 15, 4);
+  ctx.fillStyle = '#145536'; ctx.fillRect(-7, -5, 14, 10);
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.strokeRect(-7, -5, 14, 10);
+  ctx.fillStyle = '#e7832b'; ctx.fillRect(4, -3, 5, 6);
+  ctx.restore();
   const graph = resizeCanvas(get('chart'));
-  graph.ctx.strokeStyle = '#d4dfd8';
-  graph.ctx.beginPath(); graph.ctx.moveTo(0, graph.height-10); graph.ctx.lineTo(graph.width, graph.height-10); graph.ctx.stroke();
-  graph.ctx.strokeStyle = '#39804e'; graph.ctx.lineWidth = 2; graph.ctx.beginPath();
-  sim.track.slice(-60).forEach((p, index) => {
-    const x = index / 59 * graph.width;
-    const y = graph.height - 10 - p.speed_m_s / 1.2 * (graph.height - 20);
-    if (index) graph.ctx.lineTo(x, y); else graph.ctx.moveTo(x, y);
-  }); graph.ctx.stroke();
+  const chartX = 28;
+  for (const tick of [0, 0.6, 1.2]) {
+    const y = graph.height - 8 - tick / 1.2 * (graph.height - 20);
+    graph.ctx.strokeStyle = '#e3eae5'; graph.ctx.lineWidth = 1;
+    graph.ctx.beginPath(); graph.ctx.moveTo(chartX, y); graph.ctx.lineTo(graph.width, y); graph.ctx.stroke();
+    graph.ctx.fillStyle = '#52665b'; graph.ctx.font = '11px sans-serif';
+    graph.ctx.fillText(tick.toFixed(1), 0, y + 3);
+  }
+  const samples = sim.track.slice(-60);
+  for (const [field, color, dash] of [['target_m_s', '#a45010', [4, 3]], ['speed_m_s', '#39804e', []]]) {
+    graph.ctx.strokeStyle = color; graph.ctx.lineWidth = 2; graph.ctx.setLineDash(dash); graph.ctx.beginPath();
+    samples.forEach((p, index) => {
+      const x = chartX + (60 - samples.length + index) / 59 * (graph.width - chartX);
+      const y = graph.height - 8 - p[field] / 1.2 * (graph.height - 20);
+      if (index) graph.ctx.lineTo(x, y); else graph.ctx.moveTo(x, y);
+    }); graph.ctx.stroke();
+  }
+  graph.ctx.setLineDash([]);
   get('speed').textContent = `${sim.speed.toFixed(2)} m/s`;
   get('coverage').textContent = `${(sim.area/960*100).toFixed(1)}%`;
   get('count').textContent = sim.detected.length;
@@ -97,6 +119,19 @@ function draw() {
   get('treated').textContent = sim.shots.length;
   get('protected').textContent = sim.detected.filter(w => w.status === 'crop-protected').length;
   get('missed').textContent = sim.detected.filter(w => w.status === 'missed').length;
+  get('surveyProgress').value = sim.area;
+  get('progressArea').textContent = `${Math.min(960, sim.area).toFixed(0)} of 960 m² surveyed`;
+  get('rowProgress').textContent = sim.done ? 'All 12 rows surveyed' : `Row ${Math.min(12, sim.lane + 1)} of 12`;
+  get('gpsSamples').textContent = sim.track.length.toLocaleString();
+  const backlog = sim.detected.filter(w => w.status === 'queued' && Math.floor(w.y / 2) === sim.lane).length;
+  const endDistance = sim.lane % 2 === 0 ? 40 - sim.x : sim.x;
+  get('speedReason').textContent = sim.done ? 'Survey complete. All rows mapped.'
+    : !running ? (sim.time ? 'Survey paused. Resume to continue.' : 'Ready for autonomous survey.')
+    : changingRow ? 'Turning into the next crop row.'
+    : backlog > sim.capacity ? 'Slowing down to clear queued targets.'
+    : endDistance < 1.2 ? 'Braking for the end of the row.'
+    : sim.target < 1.19 ? 'Matching speed to weed density and laser capacity.'
+    : 'Low target load. Cruising at up to 1.20 m/s.';
   get('laserState').textContent = !running ? 'Idle' : sim.turnRemaining > 0 ? 'Row change' : flashing ? 'Pulse at weed stem' : 'Searching';
   get('state').textContent = sim.done ? 'Run complete' : sim.turnRemaining > 0 ? 'Changing row' : running ? 'Detecting and treating' : sim.time === 0 ? 'Ready' : 'Paused';
   const detail = resizeCanvas(get('laserView'));
@@ -131,6 +166,7 @@ function reset() {
   sim = new FieldSimulation(latitude, longitude);
   lastShotId = null;
   flashUntil = 0;
+  selectedCell = null;
   running = false;
   get('activateRun').disabled = true;
   get('runSaveStatus').textContent = '';
@@ -144,14 +180,26 @@ get('origin').onclick = reset;
 get('capacity').onchange = () => {
   if (!get('capacity').checkValidity()) get('capacity').value = sim.capacity;
 };
+function inspectCell(x, y) {
+  selectedCell = {x, y};
+  const cell = sim.cells[y*40+x];
+  const [lon, lat] = sim.gps(x+0.5,y+0.5);
+  get('cellInfo').textContent = `${lat.toFixed(7)}, ${lon.toFixed(7)} · ${cell.count} weeds · ${cell.area.toFixed(2)} m² surveyed · ${cell.area>0 ? (cell.count/cell.area).toFixed(2)+' weeds/m²' : 'Unsurveyed'}`;
+}
 get('map').onclick = event => {
   const rect = get('map').getBoundingClientRect();
   const x = Math.floor((event.clientX - rect.left - transform.ox) / transform.scale);
   const y = Math.floor((rect.height - transform.oy - (event.clientY - rect.top)) / transform.scale);
   if (x < 0 || x >= 40 || y < 0 || y >= 24) return;
-  const cell = sim.cells[y*40+x];
-  const [lon, lat] = sim.gps(x+0.5,y+0.5);
-  get('cellInfo').textContent = `${lat.toFixed(7)}, ${lon.toFixed(7)} · ${cell.count} weeds · ${cell.area.toFixed(2)} m² surveyed · ${cell.area>0 ? (cell.count/cell.area).toFixed(2)+' weeds/m²' : 'Unsurveyed'}`;
+  inspectCell(x, y);
+};
+get('map').onkeydown = event => {
+  const moves = {ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, 1], ArrowDown: [0, -1]};
+  if (!moves[event.key]) return;
+  event.preventDefault();
+  const current = selectedCell || {x: 0, y: 0};
+  const [dx, dy] = moves[event.key];
+  inspectCell(Math.max(0, Math.min(39, current.x + dx)), Math.max(0, Math.min(23, current.y + dy)));
 };
 function download(name, content, type) {
   const url = URL.createObjectURL(new Blob([content], {type}));

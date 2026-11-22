@@ -1,84 +1,115 @@
-.robot-simulation {
-    padding: 0 24px 24px;
-    color: var(--text-main, #182923);
-}
-
-.robot-simulation .controls,
-.robot-simulation .export {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: end;
-    gap: 12px;
-    margin-bottom: 20px;
-}
-
-.robot-simulation button,
-.robot-simulation select,
-.robot-simulation input[type="number"] {
-    font: inherit;
-    font-size: 14px;
-    padding: 10px 12px;
-    border: 1px solid #a5b5ac;
-    border-radius: 6px;
-    color: #183329;
-    background: #fff;
-    min-height: 42px;
-}
-
-.robot-simulation button { cursor: pointer; }
-.robot-simulation button:disabled { opacity: .5; cursor: default; }
-.robot-simulation button.primary { background: #072f1f; color: white; }
-.robot-simulation button:focus-visible,
-.robot-simulation input:focus-visible,
-.robot-simulation select:focus-visible { outline: 3px solid #d68b21; outline-offset: 2px; }
+.simulation-heading { align-items: center; }
+.simulation-label { color: #52665b; font-size: 14px; }
+.robot-simulation { --sim-border: #dee7e0; --sim-muted: #52665b; padding: 0 0 24px; color: var(--text-main, #182923); }
+.robot-simulation button, .robot-simulation select, .robot-simulation input[type="number"] { font: inherit; font-size: 14px; padding: 10px 12px; border: 1px solid #a9bbb0; border-radius: 7px; color: #183329; background: #fff; min-height: 44px; }
+.robot-simulation button { cursor: pointer; font-weight: 600; }
+.robot-simulation button:hover:not(:disabled) { background: #edf3ee; border-color: #789380; }
+.robot-simulation button:disabled { opacity: 1; cursor: default; color: #52665b; background: #f3f6f3; border-color: #dee7e0; }
+.robot-simulation button.primary { background: #104b31; border-color: #104b31; color: white; min-width: 132px; }
+.robot-simulation button.primary:hover { background: #0a3924; }
+.robot-simulation :focus-visible { outline: 3px solid #b6661d; outline-offset: 3px; }
 .robot-simulation label { font-size: 14px; }
-.robot-simulation .controls label { display: flex; flex-direction: column; gap: 5px; }
-.robot-simulation input[type="number"] { width: 130px; }
-.robot-simulation select { min-width: 90px; }
-.robot-simulation .status { font-weight: 600; margin-bottom: 16px; }
-.robot-simulation .metrics {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    margin-bottom: 20px;
-    background: white;
-    border: 1px solid #dce5df;
-    border-radius: 8px;
-}
-.robot-simulation .metric { padding: 18px; border-right: 1px solid #dce5df; }
+.survey-toolbar, .survey-actions, .playback-control { display: flex; align-items: center; gap: 10px; }
+.survey-toolbar { flex-wrap: wrap; gap: 16px; margin-bottom: 16px; }
+.robot-simulation .status { margin: 0; font-size: 14px; color: var(--sim-muted); }
+.playback-control { margin-left: auto; color: var(--sim-muted); }
+.robot-simulation select { min-width: 80px; }
+.robot-simulation details { border: 1px solid var(--sim-border); border-radius: 8px; background: #fff; line-height: 1.7; margin-bottom: 20px; }
+.robot-simulation summary { cursor: pointer; padding: 12px 16px; font-size: 14px; font-weight: 600; }
+.survey-settings summary span { color: var(--sim-muted); font-weight: 400; margin-left: 12px; }
+.survey-settings .controls { display: flex; flex-wrap: wrap; align-items: end; gap: 16px; padding: 6px 16px 12px; }
+.survey-settings .controls label { display: flex; flex-direction: column; gap: 6px; }
+.survey-settings .input-unit { color: var(--sim-muted); font-size: 12px; }
+.robot-simulation input[type="number"] { width: 160px; }
+.survey-settings p { margin: 0; padding: 0 16px 16px; font-size: 14px; color: var(--sim-muted); }
+.robot-simulation input[type="checkbox"] { width: 16px; height: 16px; accent-color: #145536; }
+.robot-simulation .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-bottom: 20px; background: white; border: 1px solid var(--sim-border); border-radius: 12px; }
+.robot-simulation .metric { padding: 16px 20px; border-right: 1px solid var(--sim-border); }
 .robot-simulation .metric:last-child { border-right: 0; }
-.robot-simulation small { font-size: 14px; color: #4b6055; }
-.robot-simulation .value { font-size: 25px; font-weight: 600; margin-top: 8px; font-variant-numeric: tabular-nums; }
-.robot-simulation .treatment { display: flex; flex-wrap: wrap; gap: 28px; margin-bottom: 20px; padding: 16px 20px; background: white; border-left: 3px solid #e47722; }
-.robot-simulation .treatment strong { display: block; margin-top: 5px; font-size: 24px; }
-.robot-simulation .layout { display: grid; grid-template-columns: minmax(0, 1fr) 270px; gap: 20px; }
-.robot-simulation .panel { min-width: 0; padding: 20px; border: 1px solid #dce5df; background: white; border-radius: 8px; }
-.robot-simulation h2 { font-size: 17px; font-weight: 600; margin: 0 0 16px; }
-.robot-simulation .map { display: block; width: 100%; height: 460px; background: #eef3ef; }
-.robot-simulation .map-note,
-.robot-simulation #cellInfo { margin: 12px 0; font-size: 14px; line-height: 1.6; }
-.robot-simulation .legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 14px; }
-.robot-simulation .swatch { display: inline-block; width: 12px; height: 12px; margin-right: 5px; border: 1px solid #a5b5ac; }
-.robot-simulation dt { font-size: 14px; color: #4b6055; font-weight: 400; }
-.robot-simulation dd { margin: 5px 0 18px; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
-.robot-simulation .plot { display: block; width: 100%; height: 100px; }
-.robot-simulation .laser-view { display: block; width: 100%; height: 150px; margin-bottom: 24px; background: #f3f6f4; }
-.robot-simulation .export { margin-top: 20px; }
-.robot-simulation details { margin-top: 20px; line-height: 1.7; }
-.robot-simulation summary { cursor: pointer; }
-.robot-simulation details p { margin-top: 12px; }
-.robot-simulation #runSaveStatus { margin-top: 18px; }
-
-@media (max-width: 1150px) {
-    .robot-simulation .layout { grid-template-columns: 1fr; }
-    .robot-simulation .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .robot-simulation .metric { border-bottom: 1px solid #dce5df; }
+.robot-simulation small { font-size: 13px; color: var(--sim-muted); }
+.robot-simulation .value { font-size: 25px; font-weight: 600; margin-top: 4px; font-variant-numeric: tabular-nums; letter-spacing: -.025em; }
+.robot-simulation .layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; align-items: start; }
+.robot-simulation .panel { min-width: 0; padding: 20px; border: 1px solid var(--sim-border); background: white; border-radius: 12px; }
+.robot-simulation h2 { font-size: 17px; font-weight: 600; margin: 0; }
+.panel-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.panel-heading p { margin: 4px 0 0; color: var(--sim-muted); font-size: 13px; }
+.field-size { font-size: 14px; white-space: nowrap; color: var(--sim-muted); }
+.map-controls { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-bottom: 12px; }
+.map-controls label { display: flex; align-items: center; gap: 7px; min-height: 32px; cursor: pointer; }
+.robot-simulation .map { display: block; width: 100%; height: 355px; background: #f2f5f1; border-radius: 6px; cursor: crosshair; touch-action: pan-y; }
+.robot-simulation .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 12px 0; font-size: 12px; color: var(--sim-muted); }
+.robot-simulation .legend span { display: inline-flex; align-items: center; }
+.robot-simulation .swatch { display: inline-block; width: 12px; height: 12px; margin-right: 5px; border: 1px solid #a5b5ac; border-radius: 2px; }
+.cell-inspector { padding: 10px 12px; margin: 0 0 16px; background: #f3f6f3; border-radius: 6px; font-size: 13px; min-height: 60px; color: #425a4c; overflow-wrap: anywhere; }
+.survey-progress > div { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; color: var(--sim-muted); }
+.survey-progress progress { display: block; width: 100%; height: 6px; border: none; border-radius: 3px; overflow: hidden; margin-top: 8px; accent-color: #145536; background: #e8eee9; }
+.survey-progress progress::-webkit-progress-bar { background: #e8eee9; }
+.survey-progress progress::-webkit-progress-value { background: #145536; }
+.survey-progress progress::-moz-progress-bar { background: #145536; }
+.robot-simulation .treatment { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding-top: 16px; margin-top: 16px; border-top: 1px solid var(--sim-border); }
+.robot-simulation .treatment strong { display: block; margin-top: 2px; font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.robot-simulation .treatment > div:first-child strong { color: #a45010; }
+.robot-simulation .map-note { margin: 12px 0 0; font-size: 12px; line-height: 1.6; color: var(--sim-muted); }
+.telemetry-rail { display: grid; gap: 16px; }
+.telemetry { margin: 12px 0 0; }
+.telemetry > div { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-top: 8px; }
+.robot-simulation dt { font-size: 13px; color: var(--sim-muted); font-weight: 400; }
+.robot-simulation dd { margin: 0; text-align: right; font-size: 13px; font-weight: 600; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.telemetry > .gps-row { display: block; border-top: 1px solid var(--sim-border); padding-top: 10px; margin-top: 12px; }
+.gps-row dd { text-align: left; margin-top: 4px; }
+.mode-label { font-size: 12px; color: #425a4c; }
+.speed-target, .look-ahead { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; font-size: 13px; }
+.speed-target strong { font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.speed-reason { color: var(--sim-muted); font-size: 13px; margin: 4px 0 12px; min-height: 42px; }
+.chart-key { display: flex; gap: 12px; font-size: 12px; color: var(--sim-muted); }
+.chart-key span:last-child { margin-left: auto; }
+.line-key { display: inline-block; width: 14px; vertical-align: middle; margin-right: 4px; border-top: 2px solid #39804e; }
+.target-key { border-top: 2px dashed #a45010; }
+.robot-simulation .plot { display: block; width: 100%; height: 90px; }
+.chart-axis { display: flex; justify-content: space-between; font-size: 11px; color: var(--sim-muted); margin: 0 0 12px 28px; }
+.look-ahead strong { font-weight: 600; }
+.robot-simulation .telemetry-rail small { font-size: 11px; }
+.robot-simulation .laser-view { display: block; width: 100%; height: 145px; background: #f3f6f3; border-radius: 6px; }
+.laser-panel p { color: var(--sim-muted); font-size: 11px; margin: 8px 0 0; }
+.robot-simulation .export-panel { margin-top: 20px; }
+.export-panel p { font-size: 14px; color: var(--sim-muted); margin: 6px 0 0; }
+.robot-simulation .export { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 16px; }
+.robot-simulation .dashboard-link { font-size: 14px; font-weight: 600; padding: 10px 0; }
+.robot-simulation #runSaveStatus:empty { display: none; }
+.robot-simulation #runSaveStatus { margin-top: 14px; color: #145536; }
+.robot-simulation .simulation-assumptions { margin: 20px 0 0; }
+.simulation-assumptions p { font-size: 14px; color: var(--sim-muted); padding: 0 16px; margin: 0 0 16px; }
+@media (max-width: 1350px) and (min-width: 1201px), (max-width: 850px) {
+ .robot-simulation .layout { grid-template-columns: minmax(0, 1fr); }
+ .telemetry-rail { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+ .telemetry-rail .laser-panel { grid-column: 1 / -1; }
 }
-
 @media (max-width: 550px) {
-    .robot-simulation { padding: 0 12px 20px; }
-    .robot-simulation .panel { padding: 14px; }
-    .robot-simulation .map { height: 280px; }
-    .robot-simulation .value { font-size: 22px; }
-    .robot-simulation .metric { padding: 12px; }
-    .robot-simulation input[type="number"] { width: 120px; }
+ .simulation-heading { gap: 8px; }
+ .simulation-label { font-size: 13px; }
+ .robot-simulation .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+ .robot-simulation .metric { padding: 12px 14px; }
+ .robot-simulation .metric:nth-child(2) { border-right: 0; }
+ .robot-simulation .metric:nth-child(-n+2) { border-bottom: 1px solid var(--sim-border); }
+ .robot-simulation .value { font-size: 22px; }
+ .survey-toolbar { gap: 10px; }
+ .survey-toolbar .status { order: 3; flex-basis: 100%; }
+ .robot-simulation .playback-control { font-size: 0; gap: 0; }
+ .simulation-heading { align-items: flex-start; }
+ .survey-settings summary span { display: none; }
+ .survey-settings .controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+ .survey-settings .controls button { grid-column: 1 / -1; }
+ .robot-simulation input[type="number"] { width: 100%; min-width: 0; }
+ .robot-simulation .panel { padding: 16px; }
+ .robot-simulation .map { height: 240px; }
+ .panel-heading { align-items: flex-start; }
+ .field-size { font-size: 13px; }
+ .map-controls { gap: 0 12px; }
+ .map-controls label { font-size: 12px; min-height: 44px; }
+ .robot-simulation .treatment small { font-size: 12px; }
+ .robot-simulation .treatment { gap: 8px; }
+ .telemetry-rail { grid-template-columns: minmax(0, 1fr); }
+ .telemetry-rail .laser-panel { grid-column: auto; }
+ .robot-simulation .export button { flex: 1 1 140px; }
+ .robot-simulation .export .dashboard-link { flex-basis: 100%; }
 }

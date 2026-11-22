@@ -81,7 +81,7 @@
                 toolbar: { show: false },
                 fontFamily: 'Plus Jakarta Sans, sans-serif'
             },
-            colors: ['#072F1F', '#B4F105', '#F97316'],
+            colors: ['#072F1F', '#E7832B', '#F97316'],
             plotOptions: {
                 bar: {
                     horizontal: false,
@@ -130,7 +130,7 @@
                 height: 250,
                 fontFamily: 'Plus Jakarta Sans, sans-serif'
             },
-            colors: ['#B4F105', '#051C12', '#F97316'],
+            colors: ['#E7832B', '#051C12', '#F97316'],
             states: { hover: { filter: { type: 'none' } } },
             legend: { show: false },
             dataLabels: { enabled: false },

@@ -1,0 +1,122 @@
+{
+  "Apple___Apple_scab": {
+    "plant": "Apple",
+    "condition": "Apple scab",
+    "healthy": false
+  },
+  "Apple___Black_rot": {
+    "plant": "Apple",
+    "condition": "Black rot",
+    "healthy": false
+  },
+  "Apple___Cedar_apple_rust": {
+    "plant": "Apple",
+    "condition": "Cedar apple rust",
+    "healthy": false
+  },
+  "Apple___healthy": {
+    "plant": "Apple",
+    "condition": "healthy",
+    "healthy": true
+  },
+  "Corn_(maize)___Cercospora_leaf_spot Gray_leaf_spot": {
+    "plant": "Corn",
+    "condition": "Cercospora leaf spot Gray leaf spot",
+    "healthy": false
+  },
+  "Corn_(maize)___Common_rust_": {
+    "plant": "Corn",
+    "condition": "Common rust",
+    "healthy": false
+  },
+  "Corn_(maize)___Northern_Leaf_Blight": {
+    "plant": "Corn",
+    "condition": "Northern Leaf Blight",
+    "healthy": false
+  },
+  "Corn_(maize)___healthy": {
+    "plant": "Corn",
+    "condition": "healthy",
+    "healthy": true
+  },
+  "Grape___Black_rot": {
+    "plant": "Grape",
+    "condition": "Black rot",
+    "healthy": false
+  },
+  "Grape___Esca_(Black_Measles)": {
+    "plant": "Grape",
+    "condition": "Esca (Black Measles)",
+    "healthy": false
+  },
+  "Grape___Leaf_blight_(Isariopsis_Leaf_Spot)": {
+    "plant": "Grape",
+    "condition": "Leaf blight (Isariopsis Leaf Spot)",
+    "healthy": false
+  },
+  "Grape___healthy": {
+    "plant": "Grape",
+    "condition": "healthy",
+    "healthy": true
+  },
+  "Strawberry___Leaf_scorch": {
+    "plant": "Strawberry",
+    "condition": "Leaf scorch",
+    "healthy": false
+  },
+  "Strawberry___healthy": {
+    "plant": "Strawberry",
+    "condition": "healthy",
+    "healthy": true
+  },
+  "Tomato___Bacterial_spot": {
+    "plant": "Tomato",
+    "condition": "Bacterial spot",
+    "healthy": false
+  },
+  "Tomato___Early_blight": {
+    "plant": "Tomato",
+    "condition": "Early blight",
+    "healthy": false
+  },
+  "Tomato___Late_blight": {
+    "plant": "Tomato",
+    "condition": "Late blight",
+    "healthy": false
+  },
+  "Tomato___Leaf_Mold": {
+    "plant": "Tomato",
+    "condition": "Leaf Mold",
+    "healthy": false
+  },
+  "Tomato___Septoria_leaf_spot": {
+    "plant": "Tomato",
+    "condition": "Septoria leaf spot",
+    "healthy": false
+  },
+  "Tomato___Spider_mites Two-spotted_spider_mite": {
+    "plant": "Tomato",
+    "condition": "Spider mites Two-spotted spider mite",
+    "healthy": false
+  },
+  "Tomato___Target_Spot": {
+    "plant": "Tomato",
+    "condition": "Target Spot",
+    "healthy": false
+  },
+  "Tomato___Tomato_Yellow_Leaf_Curl_Virus": {
+    "plant": "Tomato",
+    "condition": "Tomato Yellow Leaf Curl Virus",
+    "healthy": false
+  },
+  "Tomato___Tomato_mosaic_virus": {
+    "plant": "Tomato",
+    "condition": "Tomato mosaic virus",
+    "healthy": false
+  },
+  "Tomato___healthy": {
+    "plant": "Tomato",
+    "condition": "healthy",
+    "healthy": true
+  }
+}

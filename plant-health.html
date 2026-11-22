@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plant Health - Nabta</title>
+  <meta name="description" content="Classify a leaf photo using the local plant-health model.">
+  <meta name="author" content="Nabta based on Spark Admin">
+  <link rel="icon" type="image/svg+xml" href="assets/images/nabta-icon.svg?v=2">
+  <link rel="stylesheet" href="assets/libs/bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" href="assets/libs/bootstrap-icons/bootstrap-icons.css">
+  <link rel="stylesheet" href="assets/css/main.css?v=2">
+  <link rel="stylesheet" href="assets/css/plant-health.css">
+</head>
+
+<body>
+  <aside class="sidebar-wrapper" id="sidebar"></aside>
+  <script src="assets/js/sidebar.js"></script>
+
+  <div class="main-wrapper">
+    <header class="navbar-custom">
+      <div class="navbar-left">
+        <button class="btn-desktop-toggle d-none d-xl-flex align-items-center justify-content-center me-3"
+          id="desktop-sidebar-toggle" aria-label="Minimize Sidebar">
+          <i class="bi bi-chevron-bar-left"></i>
+        </button>
+        <button class="sidebar-toggle-btn me-2" id="sidebar-toggle" aria-label="Toggle Navigation">
+          <i class="bi bi-list"></i>
+        </button>
+        <a href="index.html" class="text-decoration-none text-main fw-bold">Nabta Plant Health</a>
+      </div>
+    </header>
+
+    <div class="page-header"><div><h1 class="page-title">Plant Health</h1><p class="page-subtitle">Upload a leaf photo and select its crop to estimate the plant condition.</p></div></div>
+    <main class="plant-workspace">
+      <div class="plant-model-toolbar"><span id="plant-model-status" role="status">Checking plant-health model...</span><button id="plant-check-model" class="btn btn-outline-secondary btn-sm">Check model</button></div>
+      <p class="plant-note">Supported crops: <span id="supported-crops">Apple, Corn, Grape, Tomato, Strawberry</span>.</p>
+      <p id="plant-message" role="status" aria-live="polite">Choose a leaf photo and its crop.</p>
+      <div class="plant-layout">
+        <section class="plant-panel"><h2>Leaf photo</h2>
+          <form id="plant-form"><label for="leaf-photo">Photo</label><input id="leaf-photo" class="form-control" type="file" accept="image/jpeg,image/png,image/webp" required>
+            <label for="plant-crop">Crop</label><select id="plant-crop" class="form-select" required><option value="">Choose crop</option></select>
+            <button id="analyze-plant" class="btn btn-dark" type="submit" disabled>Analyze leaf</button>
+          </form>
+          <div class="leaf-stage"><p id="leaf-placeholder">Your selected leaf photo will appear here.</p><img id="leaf-preview" alt="Selected leaf photo" hidden></div>
+          <p class="plant-note mt-3">JPEG, PNG, or WebP up to 8 MB and 16 megapixels. Center the leaf in the photo. The model resizes and center-crops the image to 224 &times; 224 pixels.</p>
+        </section>
+        <section class="plant-panel" aria-label="Plant health prediction"><h2>Model prediction</h2>
+          <p class="plant-note">The model was trained on PlantVillage and has not been validated on field-camera images. Predictions need verification against the actual plant.</p>
+          <div id="plant-result" hidden>
+            <p id="prediction-status" class="plant-note"></p><div id="condition-name" class="plant-condition"></div>
+            <div id="prediction-confidence" class="plant-score"></div><p class="plant-note">Confidence within the selected crop's classes</p><p id="prediction-threshold" class="plant-note"></p>
+            <p id="confidence-message" class="plant-confidence"></p>
+            <table><thead><tr><th scope="col">Condition candidate</th><th scope="col" class="text-end">Confidence</th></tr></thead><tbody id="plant-alternatives"></tbody></table>
+          </div>
+        </section>
+      </div>
+    </main><footer class="footer-custom"><span>Nabta local plant-health classification</span></footer>
+  </div>
+  <script src="assets/libs/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/plant-health.js"></script>
+  <script src="assets/js/dashboard.js"></script>
+</body></html>

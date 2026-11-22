@@ -1,0 +1,22 @@
+.plant-workspace { padding: 0 24px 24px; }
+.plant-model-toolbar { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; margin-bottom: 20px; }
+.plant-layout { display: grid; grid-template-columns: minmax(0,1fr) minmax(280px,1fr); gap: 24px; align-items: start; }
+.plant-panel { padding: 24px; background: white; border: 1px solid #dce5df; border-radius: 8px; min-width: 0; }
+.plant-panel h2 { font-size: 20px; margin: 0 0 18px; }
+.plant-panel label { display: block; font-weight: 600; margin-bottom: 8px; }
+.plant-panel .form-control, .plant-panel .form-select { margin-bottom: 20px; }
+.leaf-stage { display: grid; place-items: center; min-height: 230px; margin-top: 20px; background: #f1f5f0; border-radius: 6px; overflow: hidden; }
+.leaf-stage img { display: block; max-width: 100%; max-height: 380px; object-fit: contain; }
+.leaf-stage [hidden] { display: none; }
+#leaf-placeholder { padding: 24px; color: #4b6055; text-align: center; }
+.plant-note { font-size: 14px; line-height: 1.7; color: #4b6055; }
+.plant-condition { font-size: 28px; font-weight: 600; line-height: 1.3; margin: 12px 0; overflow-wrap: anywhere; }
+.plant-score { font-size: 32px; font-weight: 600; font-variant-numeric: tabular-nums; margin: 12px 0 4px; }
+.plant-confidence { margin: 20px 0; padding: 14px; background: #edf4ec; border-left: 3px solid #326643; }
+.plant-confidence.uncertain { background: #fff4df; border-left-color: #b87d1e; }
+.plant-panel td { padding: 12px 0; border-bottom: 1px solid #e3e9e4; }
+.plant-panel th { font-size: 14px; padding: 10px 0; }
+.plant-panel table { width: 100%; }
+.plant-panel [hidden] { display: none; }
+@media(max-width:1100px) { .plant-layout { grid-template-columns: 1fr; } }
+@media(max-width:550px) { .plant-workspace { padding: 0 12px 20px; } .plant-panel { padding: 18px; } }

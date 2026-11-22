@@ -4,14 +4,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nabta - Admin Dashboard</title>
+  <title>Nabta | Field Operations</title>
 
   <!-- SEO Optimization -->
-  <meta name="description" content="Nabta Admin Dashboard">
+  <meta name="description" content="Nabta field operations, robot simulation, and crop analysis.">
   <meta name="author" content="Spark Admin Team">
 
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="assets/images/favicon.ico">
+  <link rel="icon" type="image/svg+xml" href="assets/images/nabta-icon.svg?v=2">
 
   <!-- Local Third-Party Libraries (100% Offline Compatible) -->
   <link rel="stylesheet" href="assets/libs/bootstrap/css/bootstrap.min.css">
@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="assets/libs/flatpickr/flatpickr.min.css">
 
   <!-- Main Design System & Custom Stylesheet -->
-  <link rel="stylesheet" href="assets/css/main.css">
+  <link rel="stylesheet" href="assets/css/main.css?v=2">
 </head>
 
 <body>
@@ -52,27 +52,19 @@
           <button class="btn-quick-action dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"
             id="quick-actions-dropdown">
             <i class="bi bi-plus-lg"></i>
-            <span>Create</span>
+            <span>Field tools</span>
           </button>
           <ul class="dropdown-menu dropdown-menu-quick-action" aria-labelledby="quick-actions-dropdown">
             <li class="dropdown-header">Quick Action Shortcuts</li>
-            <li><a class="dropdown-item" href="#"><i class="bi bi-file-earmark-plus"></i> New Invoice</a></li>
-            <li><a class="dropdown-item" href="#"><i class="bi bi-person-plus"></i> New User</a></li>
-            <li><a class="dropdown-item" href="#"><i class="bi bi-box-seam"></i> New Product</a></li>
+            <li><a class="dropdown-item" href="simulation.html"><i class="bi bi-robot"></i> Start simulation</a></li>
+            <li><a class="dropdown-item" href="plant-health.html"><i class="bi bi-flower1"></i> Analyze a leaf</a></li>
+            <li><a class="dropdown-item" href="weed-detection.html"><i class="bi bi-camera-video"></i> Analyze a video</a></li>
             <li>
               <hr class="dropdown-divider">
             </li>
-            <li><a class="dropdown-item" href="#"><i class="bi bi-gear"></i> System Settings</a></li>
+            <li><a class="dropdown-item" href="field-data.html"><i class="bi bi-table"></i> Browse field data</a></li>
           </ul>
         </div>
-      </div>
-
-      <!-- Mid navbar: search pill -->
-      <div class="navbar-search-wrapper">
-        <input type="text" class="navbar-search-input" placeholder="Search anything in Nabta..." id="main-search">
-        <button class="navbar-search-btn" aria-label="Search">
-          <i class="bi bi-search"></i>
-        </button>
       </div>
 
       <!-- Right actions -->
