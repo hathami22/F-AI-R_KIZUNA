@@ -19,6 +19,16 @@ Then open `http://localhost:3000`. The server binds to `127.0.0.1` by default. `
 
 The dashboard's non-AI pages can still be served with `python -m http.server 8000`, but the assistant API requires `node server.js`.
 
+## Appearance
+
+Use the sun/moon button beside the language selector to switch between light and
+dark mode. Nabta follows the device's color scheme until a mode is selected, then
+saves the choice locally and synchronizes it across tabs. Changes apply without
+reloading the page or interrupting a running simulation/video. Charts, map density
+colors, legends, form controls and dialogs adapt to the selected mode. The white
+sidebar logo remains transparent in both modes. Shared theme tokens and controls
+live in `assets/css/themes.css` and `assets/js/theme.js`.
+
 ## Languages
 
 Use the language selector in the header to switch between English, Arabic, and

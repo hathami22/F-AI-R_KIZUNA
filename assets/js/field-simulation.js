@@ -22,6 +22,7 @@ function resizeCanvas(canvas) {
 }
 
 function draw() {
+  const palette = NabtaTheme.palette;
   const {ctx, width, height} = resizeCanvas(get('map'));
   const scale = Math.min((width - 60) / 40, (height - 45) / 24);
   const ox = (width - scale * 40) / 2;
@@ -30,31 +31,31 @@ function draw() {
   const point = (x, y) => [ox + x * scale, height - oy - y * scale];
   for (const cell of sim.cells) {
     const density = cell.area > 0 ? cell.count / cell.area : null;
-    const colors = ['#e2efe3', '#83b28d', '#39804e', '#174d2c'];
-    ctx.fillStyle = density === null ? '#e0e5e1' : colors[density >= 6 ? 3 : density >= 3 ? 2 : density >= 1 ? 1 : 0];
+    const colors = palette.density.slice(1);
+    ctx.fillStyle = density === null ? palette.density[0] : colors[density >= 6 ? 3 : density >= 3 ? 2 : density >= 1 ? 1 : 0];
     const [x, y] = point(cell.x, cell.y + 1);
     ctx.fillRect(x, y, scale + 0.2, scale + 0.2);
   }
-  ctx.strokeStyle = '#a6b5ab';
+  ctx.strokeStyle = palette.mapGrid;
   ctx.lineWidth = 0.5;
   for (let y = 0; y <= 24; y += 2) {
     ctx.beginPath(); ctx.moveTo(...point(0, y)); ctx.lineTo(...point(40, y)); ctx.stroke();
   }
-  ctx.fillStyle = '#4b6055'; ctx.font = '13px Segoe UI';
+  ctx.fillStyle = palette.mapText; ctx.font = '13px Segoe UI';
   ctx.fillText(NabtaI18n.t('N ↑'), 6, 18);
   ctx.fillText(NabtaI18n.t('40 m east'), width / 2 - 30, height - 5);
   if (get('truth').checked) {
     ctx.fillStyle = '#7a4f22';
     for (const weed of sim.weeds) {ctx.beginPath(); ctx.arc(...point(weed.x, weed.y), 1.5, 0, Math.PI * 2); ctx.fill();}
   }
-  ctx.fillStyle = '#2a6150';
+  ctx.fillStyle = palette.crop;
   for (const crop of get('showCrops').checked ? sim.crops : []) {
     const [x, y] = point(crop.x, crop.y);
     ctx.fillRect(x - 1, y - 2, 2, 4);
   }
   for (const weed of sim.detected) {
     const [x, y] = point(weed.x, weed.y);
-    ctx.fillStyle = weed.status === 'treated' ? '#dc7019' : weed.status === 'crop-protected' ? '#67798a' : '#182923';
+    ctx.fillStyle = weed.status === 'treated' ? '#dc7019' : weed.status === 'crop-protected' ? '#9aafb8' : palette.queued;
     ctx.beginPath(); ctx.arc(x, y, 1.7, 0, Math.PI * 2); ctx.fill();
   }
   ctx.strokeStyle = '#b77b20'; ctx.lineWidth = 2;
@@ -93,13 +94,13 @@ function draw() {
   const chartX = 28;
   for (const tick of [0, 0.6, 1.2]) {
     const y = graph.height - 8 - tick / 1.2 * (graph.height - 20);
-    graph.ctx.strokeStyle = '#e3eae5'; graph.ctx.lineWidth = 1;
+    graph.ctx.strokeStyle = palette.grid; graph.ctx.lineWidth = 1;
     graph.ctx.beginPath(); graph.ctx.moveTo(chartX, y); graph.ctx.lineTo(graph.width, y); graph.ctx.stroke();
-    graph.ctx.fillStyle = '#52665b'; graph.ctx.font = '11px sans-serif';
+    graph.ctx.fillStyle = palette.muted; graph.ctx.font = '11px sans-serif';
     graph.ctx.fillText(tick.toFixed(1), 0, y + 3);
   }
   const samples = sim.track.slice(-60);
-  for (const [field, color, dash] of [['target_m_s', '#a45010', [4, 3]], ['speed_m_s', '#39804e', []]]) {
+  for (const [field, color, dash] of [['target_m_s', palette.target, [4, 3]], ['speed_m_s', palette.actual, []]]) {
     graph.ctx.strokeStyle = color; graph.ctx.lineWidth = 2; graph.ctx.setLineDash(dash); graph.ctx.beginPath();
     samples.forEach((p, index) => {
       const x = chartX + (60 - samples.length + index) / 59 * (graph.width - chartX);
@@ -136,8 +137,8 @@ function draw() {
   get('state').textContent = sim.done ? 'Run complete' : sim.turnRemaining > 0 ? 'Changing row' : running ? 'Detecting and treating' : sim.time === 0 ? 'Ready' : 'Paused';
   const detail = resizeCanvas(get('laserView'));
   const cx = detail.width / 2;
-  detail.ctx.fillStyle = '#183e2c'; detail.ctx.fillRect(cx - 22, 8, 44, 16);
-  detail.ctx.strokeStyle = '#39804e'; detail.ctx.lineWidth = 3;
+  detail.ctx.fillStyle = palette.actual; detail.ctx.fillRect(cx - 22, 8, 44, 16);
+  detail.ctx.strokeStyle = palette.actual; detail.ctx.lineWidth = 3;
   detail.ctx.beginPath(); detail.ctx.moveTo(cx, 105); detail.ctx.lineTo(cx, 80);
   detail.ctx.moveTo(cx, 92); detail.ctx.lineTo(cx - 16, 78);
   detail.ctx.moveTo(cx, 96); detail.ctx.lineTo(cx + 15, 81); detail.ctx.stroke();
@@ -146,7 +147,7 @@ function draw() {
     detail.ctx.beginPath(); detail.ctx.moveTo(cx, 24); detail.ctx.lineTo(cx, 105); detail.ctx.stroke();
     detail.ctx.beginPath(); detail.ctx.arc(cx, 105, 7, 0, Math.PI*2); detail.ctx.stroke();
   }
-  detail.ctx.fillStyle = '#4b6055'; detail.ctx.font = '13px Segoe UI';
+  detail.ctx.fillStyle = palette.mapText; detail.ctx.font = '13px Segoe UI';
   detail.ctx.fillText(NabtaI18n.t(shot ? `Last stem ${shot.x.toFixed(2)}, ${shot.y.toFixed(2)} m` : 'Waiting for first target'), 10, 135);
 }
 
@@ -233,6 +234,14 @@ function frame(now) {
   draw(); requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
+
+function updateDensityLegend() {
+  document.querySelectorAll('.legend .swatch').forEach((swatch, index) => {
+    swatch.style.backgroundColor = NabtaTheme.palette.density[index];
+  });
+}
+updateDensityLegend();
+window.addEventListener('nabta:themechange', updateDensityLegend);
 
 get('activateRun').onclick = () => {
   if (!sim.done) return;

@@ -49,7 +49,7 @@
                 marker: { show: false }
             }
         });
-        chart.render();
+        NabtaTheme.renderChart(chart);
     }
 
     function createTreatmentChart(data) {
@@ -66,7 +66,7 @@
             { name: 'Missed', key: 'missed' }
         ];
 
-        new ApexCharts(element, {
+        const chart = new ApexCharts(element, {
             series: statuses.map(function (status) {
                 return {
                     name: status.name,
@@ -112,7 +112,11 @@
                 theme: 'dark',
                 y: { formatter: function (value) { return formatNumber(value) + ' detections'; } }
             }
-        }).render();
+        });
+        NabtaTheme.renderChart(chart, {
+            light: ['#072F1F', '#E7832B', '#F97316'],
+            dark: ['#8dd5a3', '#E7832B', '#F97316']
+        });
     }
 
     function createOutcomesChart(summary) {
@@ -122,7 +126,7 @@
         }
 
         const total = summary.totalDetections;
-        new ApexCharts(element, {
+        const chart = new ApexCharts(element, {
             series: [summary.treated, summary.cropProtected, summary.missed],
             labels: ['Treated', 'Crop protected', 'Missed'],
             chart: {
@@ -164,7 +168,11 @@
                 theme: 'dark',
                 y: { formatter: function (value) { return formatNumber(value) + ' detections'; } }
             }
-        }).render();
+        });
+        NabtaTheme.renderChart(chart, {
+            light: ['#E7832B', '#051C12', '#F97316'],
+            dark: ['#E7832B', '#8dd5a3', '#F97316']
+        });
     }
 
     function createRecentDetection(weed) {

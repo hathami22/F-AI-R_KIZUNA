@@ -354,6 +354,8 @@ MobileNetV3-Large ready · {0} · {1} crops	MobileNetV3-Large جاهز · {0} ·
 `.trim().split('\n').map(line => { const [en, ar, ja] = line.split('\t'); return [en, {ar, ja}]; }));
 
 Object.assign(window.NabtaMessages, Object.fromEntries(`
+Switch to light mode	التبديل إلى الوضع الفاتح	ライトモードに切り替え
+Switch to dark mode	التبديل إلى الوضع الداكن	ダークモードに切り替え
 Leaf analysis complete.	اكتمل تحليل الورقة.	葉の分析が完了しました。
 Dismiss alert	إغلاق التنبيه	アラートを閉じる
 {0}m {1}s	{0} دقيقة {1} ثانية	{0}分{1}秒

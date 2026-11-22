@@ -150,7 +150,7 @@ document.addEventListener('DOMContentLoaded', function () {
         };
 
         const revenueChart = new ApexCharts(revenueChartEl, revenueChartOptions);
-        revenueChart.render();
+        NabtaTheme.renderChart(revenueChart);
     }
 
     // -----------------------------------------------------------------
@@ -224,7 +224,7 @@ document.addEventListener('DOMContentLoaded', function () {
         };
 
         const viewsChart = new ApexCharts(viewsChartEl, viewsChartOptions);
-        viewsChart.render();
+        NabtaTheme.renderChart(viewsChart);
     }
 
     // -----------------------------------------------------------------
@@ -317,13 +317,13 @@ document.addEventListener('DOMContentLoaded', function () {
     const incomeSparkEl = document.querySelector('#income-sparkline');
     if (incomeSparkEl) {
         const incomeSpark = new ApexCharts(incomeSparkEl, incomeSparkOptions);
-        incomeSpark.render();
+        NabtaTheme.renderChart(incomeSpark);
     }
 
     const returnSparkEl = document.querySelector('#return-sparkline');
     if (returnSparkEl) {
         const returnSpark = new ApexCharts(returnSparkEl, returnSparkOptions);
-        returnSpark.render();
+        NabtaTheme.renderChart(returnSpark);
     }
 
     // -----------------------------------------------------------------

@@ -1,0 +1,91 @@
+:root {
+    --theme-surface: #fff; --theme-raised: #edf3ee; --theme-ink: #183329;
+    --theme-muted: #52665b; --theme-control: #a9bbb0; --theme-link: #145536;
+}
+.appearance-controls { display: flex; gap: 8px; align-items: center; justify-self: end; grid-column: -2 / -1; }
+.appearance-controls .language-control { margin-inline-start: 0; }
+.theme-toggle { display: inline-flex; align-items: center; justify-content: center; width: 44px; min-width: 44px; height: 44px; padding: 0; border: 1px solid var(--theme-control); border-radius: 7px; background: var(--theme-surface); color: var(--theme-ink); font-size: 18px; }
+.theme-toggle:hover { background: var(--theme-raised); }
+.theme-toggle:focus-visible { outline: 3px solid #b6661d; outline-offset: 3px; }
+body > .appearance-controls { position: absolute; inset-block-start: 16px; inset-inline-end: 20px; z-index: 10; }
+[data-theme="dark"] {
+    --bs-body-bg: #111713; --bs-body-color: #edf4ee; --bs-emphasis-color: #edf4ee;
+    --bs-secondary-color: #b3c2b8; --bs-secondary-color-rgb: 179,194,184;
+    --bs-tertiary-color: #b3c2b8; --bs-border-color: #38473d;
+    --bs-secondary-bg: #26312a; --bs-tertiary-bg: #202a23;
+    --bs-link-color: #a5dbb6; --bs-link-hover-color: #d2eddb;
+    --bs-link-color-rgb: 165,219,182;
+    --text-main: #edf4ee; --text-muted-green: #b3c2b8;
+    --card-background: #1b221e; --border-light: #38473d;
+    --theme-surface: #1b221e; --theme-raised: #26312a; --theme-ink: #edf4ee;
+    --theme-muted: #b3c2b8; --theme-control: #64796b; --theme-link: #a5dbb6;
+    --sys-green-bg: #203e2a; --sys-orange-bg: #483321; --sys-red-bg: #492b2b;
+    --shadow-lg: none;
+}
+[data-theme="dark"] :is(a, .login-footer-text a):not(.btn,.sidebar-menu-link,.sidebar-brand,.btn-quick-action,.dropdown-item,.page-link) { color: var(--theme-link); }
+[data-theme="dark"] :is(.navbar-custom,.dropdown-menu,.flatpickr-calendar,.login-card,.error-card,.plant-panel,.pest-diagnostic-panel,.detection-metrics,.robot-simulation .panel,.robot-simulation .metrics,.robot-simulation details) { background: var(--theme-surface); color: var(--theme-ink); border-color: var(--border-light); }
+[data-theme="dark"] .flatpickr-calendar { background: var(--theme-surface) !important; }
+[data-theme="dark"] :is(.navbar-action-btn,.btn-desktop-toggle,.sidebar-toggle-btn,.btn-date-picker,.btn-table-action,.table-btn-action,.btn-social,.btn-toggle-password,.language-control select,.form-control,.form-select,.form-control-custom,.form-select-custom,.table-search-input,.assistant-prompt,.assistant-input,.robot-simulation button,.robot-simulation select,.robot-simulation input[type="number"]) { background-color: var(--theme-surface); border-color: var(--theme-control); color: var(--theme-ink); }
+[data-theme="dark"] :is(.navbar-profile-name,.navbar-profile-caret,.table-user-name,.table-order-id,.table-product-name,.table-amount,.dropdown-item,.dropdown-header,.notification-title,.notification-text,.login-title,.form-label-custom,.assistant-context-heading,.assistant-guidance-note strong) { color: var(--theme-ink); }
+[data-theme="dark"] :is(.page-subtitle,.footer-custom,.table-custom th,.table-user-sub,.table-pagination-info,.notification-time,.plant-note,#leaf-placeholder,.detection-note,.detection-metrics span,.pest-diagnostic-panel p,.pest-diagnostic-panel li,.login-subtitle,.login-footer-text,.language-control,.mode-label,.cell-inspector) { color: var(--theme-muted); }
+[data-theme="dark"] :is(.navbar-action-btn,.btn-desktop-toggle,.sidebar-toggle-btn,.dropdown-item,.table-btn-action,.assistant-prompt,.robot-simulation button):hover:not(:disabled) { background-color: var(--theme-raised); color: var(--theme-ink); }
+[data-theme="dark"] :is(.form-control,.form-control-custom,.assistant-input)::placeholder { color: var(--theme-muted); opacity: 1; }
+[data-theme="dark"] :is(.form-control:disabled,.form-control-custom:disabled,.form-control-custom[readonly],.form-select-custom:disabled,.robot-simulation button:disabled) { background: var(--theme-raised); color: var(--theme-muted); }
+[data-theme="dark"] input[type="file"]::file-selector-button { background: var(--theme-raised); color: var(--theme-ink); }
+[data-theme="dark"] .btn-outline-secondary { --bs-btn-color: #d1dfd5; --bs-btn-border-color: #64796b; --bs-btn-hover-bg: #2a3a2e; --bs-btn-hover-color: #fff; --bs-btn-hover-border-color: #a2b9a9; }
+[data-theme="dark"] :is(.btn-primary,.btn-dark,.robot-simulation button.primary) { background: #28613d; border-color: #639b75; color: #fff; }
+[data-theme="dark"] :is(.btn-primary,.btn-dark,.robot-simulation button.primary):hover:not(:disabled) { background: #347b4d; color: #fff; }
+[data-theme="dark"] :is(.table-custom th,.table-custom tbody tr:hover,.cell-inspector,.leaf-stage,.pest-ai-diagnostic,.assistant-message-assistant,.notification-header,.notification-footer) { background: var(--theme-raised); }
+[data-theme="dark"] :is(.table-custom td,.plant-panel td,.table-header-control,.table-footer-control,.dropdown-divider,.notification-header,.notification-footer,.detection-metrics > div,.pest-ai-diagnostic,.plant-panel,.pest-diagnostic-panel) { border-color: var(--border-light); }
+[data-theme="dark"] .table-custom { color: var(--theme-ink); }
+[data-theme="dark"] .table-footer-control .pagination .page-link { color: var(--theme-ink); background: var(--theme-surface); border-color: var(--theme-control); }
+[data-theme="dark"] .table-footer-control .pagination .page-item.active .page-link { color: #fff; background: #28613d; }
+[data-theme="dark"] .table-footer-control .pagination .page-item.disabled .page-link { color: var(--theme-muted); background: var(--theme-raised); }
+[data-theme="dark"] :is(.text-success,.assistant-context-status[data-state="ready"]) { color: #9adead !important; }
+[data-theme="dark"] :is(.text-danger,.assistant-context-status[data-state="error"]) { color: #ffb2ac !important; }
+[data-theme="dark"] .text-warning { color: #f6c58f !important; }
+[data-theme="dark"] :is(.plant-confidence,.assistant-status[data-state="ready"],.badge-paid) { background: #203e2a; color: #b4e7c3; }
+[data-theme="dark"] :is(.plant-confidence.uncertain,.assistant-status[data-state="warning"],.badge-processing) { background: #483321; color: #ffd1a1; }
+[data-theme="dark"] :is(.assistant-status[data-state="error"],.badge-cancelled) { background: #492b2b; color: #ffc2bb; }
+[data-theme="dark"] .robot-simulation { --sim-border: #38473d; --sim-muted: #b3c2b8; }
+[data-theme="dark"] :is(.robot-simulation .map,.robot-simulation .laser-view) { background: #202a23; }
+[data-theme="dark"] .robot-simulation .treatment > div:first-child strong { color: #f3a56b; }
+[data-theme="dark"] .robot-simulation #runSaveStatus { color: #a5dbb6; }
+[data-theme="dark"] .robot-simulation .line-key { border-color: #8dd5a3; }
+[data-theme="dark"] .robot-simulation .target-key { border-color: #f3a56b; }
+[data-theme="dark"] .survey-progress progress::-webkit-progress-bar { background: #38473d; }
+[data-theme="dark"] .survey-progress progress::-webkit-progress-value { background: #8dd5a3; }
+[data-theme="dark"] .survey-progress progress::-moz-progress-bar { background: #8dd5a3; }
+[data-theme="dark"] :is(.flatpickr-day,.flatpickr-current-month,.flatpickr-weekday,.flatpickr-month,.flatpickr-time input,.flatpickr-time .flatpickr-am-pm) { color: var(--theme-ink) !important; }
+[data-theme="dark"] .flatpickr-day.flatpickr-disabled { color: #82978a !important; }
+[data-theme="dark"] :is(.flatpickr-day.inRange,.flatpickr-day:hover) { background: #344d3c; border-color: #64796b; }
+[data-theme="dark"] :is(.flatpickr-prev-month svg,.flatpickr-next-month svg) { fill: var(--theme-ink); }
+[data-theme="dark"] .apexcharts-legend-text { color: var(--theme-muted) !important; }
+[data-theme="dark"] .alert-green-date { color: #b3cbbb; }
+[data-theme="dark"] :is(.table-card-custom,.table-header-control,.table-footer-control,.error-card-custom) { background-color: var(--theme-surface); border-color: var(--border-light) !important; }
+[data-theme="dark"] :is(.simulation-label,.footer-separator,.pest-ai-diagnostic) { color: var(--theme-muted); }
+[data-theme="dark"] :is(.error-title-huge,.login-brand) { color: var(--theme-ink); }
+[data-theme="dark"] .badge-table.success { background: #203e2a; color: #b4e7c3; }
+[data-theme="dark"] .badge-table.pending { background: #483321; color: #ffd1a1; }
+[data-theme="dark"] .badge-table.failed { background: #492b2b; color: #ffc2bb; }
+[data-theme="dark"] .legend-dot.bg-forest-medium { background-color: #8dd5a3 !important; }
+[data-theme="dark"] .login-input:focus { background: var(--theme-surface); color: var(--theme-ink); border-color: #8dd5a3; }
+[data-theme="dark"] :is(.btn-custom-outline-primary,.btn-custom-outline-secondary) { color: #a5dbb6; border-color: #8daf97; }
+[data-theme="dark"] .btn-custom-warning { color: #18221b; }
+[data-theme="dark"] :is(.form-check-input-custom,.form-switch-custom .form-check-input-custom) { background-color: var(--theme-raised); border-color: var(--theme-control); }
+[data-theme="dark"] .form-check-input-custom:checked { background-color: #347b4d; }
+[data-theme="dark"] :is(.footer-copy,.footer-link,.input-group-text-custom) { color: var(--theme-muted); }
+[data-theme="dark"] .input-group-text-custom { background: var(--theme-raised); border-color: var(--theme-control); }
+[data-theme="dark"] .assistant-connection-badge { background: #483321; color: #ffd1a1; }
+[data-theme="dark"] .assistant-connection-badge[data-state="ready"] { background: #203e2a; color: #b4e7c3; }
+[data-theme="dark"] .assistant-connection-badge[data-state="error"] { background: #492b2b; color: #ffc2bb; }
+[data-theme="dark"] .form-feedback-custom.invalid-custom { color: #ffb2ac; }
+[data-theme="dark"] .btn-custom-danger { background: #ad3030; border-color: #ad3030; }
+[data-theme="dark"] .btn-custom-outline-danger { color: #ffb2ac; border-color: #dc6862; }
+[data-theme="dark"] .alert-custom-primary { background: #263c2c; border-color: #4e725a; color: #c4e5ce; }
+@media(max-width:550px) {
+ .navbar-left { min-width: 0; flex: 1 1 145px; }
+ .appearance-controls { gap: 6px; margin-inline-start: auto; }
+ .navbar-custom { column-gap: 8px; }
+ .appearance-controls .language-control select { max-width: 90px; }
+}
