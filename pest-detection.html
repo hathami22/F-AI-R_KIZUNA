@@ -14,7 +14,7 @@
   <link rel="stylesheet" href="assets/css/weed-detection.css">
   <link rel="stylesheet" href="assets/css/pest-detection.css">
   <link rel="stylesheet" href="assets/css/i18n.css?v=1">
-  <script src="assets/js/translations.js?v=1"></script>
+  <script src="assets/js/translations.js?v=2"></script>
   <script src="assets/js/i18n.js?v=1"></script>
   <link rel="stylesheet" href="assets/css/themes.css?v=1">
   <script src="assets/js/theme.js?v=1"></script>
@@ -115,7 +115,7 @@
           <li>No sampled frames yet.</li>
         </ul>
         <div class="pest-ai-diagnostic" id="pest-ai-diagnostic" role="status" aria-live="polite">
-          AI diagnostics require OPENAI_API_KEY. Only this summary is sent to OpenAI; video frames are not.
+          AI diagnostics require GEMINI_API_KEY. Only this summary is sent to Google Gemini; video frames are not.
         </div>
         <p class="pest-diagnostic-disclaimer">
           This model detects only its trained label. It cannot confirm pest species, count unique insects, or diagnose
@@ -128,7 +128,7 @@
   </div>
 
   <script src="assets/libs/bootstrap/js/bootstrap.bundle.min.js"></script>
-  <script src="assets/js/weed-detection.js"></script>
+  <script src="assets/js/weed-detection.js?v=2"></script>
   <script src="assets/js/dashboard.js"></script>
 </body>
 

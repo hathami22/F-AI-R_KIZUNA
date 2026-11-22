@@ -14,7 +14,8 @@ try {
 }
 const host = process.env.HOST || '127.0.0.1';
 const port = Number(process.env.PORT || 3000);
-const model = process.env.OPENAI_MODEL || 'gpt-4.1-mini';
+const model = (process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite').trim().replace(/^models\//, '');
+const geminiKey = (process.env.GEMINI_API_KEY || '').trim();
 const maxBodyBytes = 20 * 1024;
 const maxMessageChars = 5000;
 const maxContextChars = 6000;
@@ -260,24 +261,12 @@ function checkRateLimit(request) {
 }
 
 function extractText(payload) {
-    if (payload && typeof payload.output_text === 'string') {
-        return payload.output_text.trim();
-    }
-    if (!payload || !Array.isArray(payload.output)) {
-        return '';
-    }
-
-    return payload.output.reduce(function (text, item) {
-        if (item.type !== 'message' || !Array.isArray(item.content)) {
-            return text;
-        }
-        const messageText = item.content.filter(function (part) {
-            return part.type === 'output_text' && typeof part.text === 'string';
-        }).map(function (part) {
-            return part.text;
-        }).join('\n');
-        return text ? text + '\n' + messageText : messageText;
-    }, '').trim();
+    const candidate = payload?.candidates?.[0];
+    if (payload?.promptFeedback?.blockReason || !candidate ||
+        !['STOP', 'MAX_TOKENS'].includes(candidate.finishReason)) return '';
+    if (!Array.isArray(candidate.content?.parts)) return '';
+    return candidate.content.parts.filter(part => part && !part.thought && typeof part.text === 'string')
+        .map(part => part.text).join('\n').trim();
 }
 
 async function handleAssistant(request, response) {
@@ -293,9 +282,9 @@ async function handleAssistant(request, response) {
         });
         return;
     }
-    if (!process.env.OPENAI_API_KEY) {
+    if (!geminiKey) {
         request.resume();
-        sendJson(response, 503, { error: 'The assistant is not configured. Set OPENAI_API_KEY on the server.' });
+        sendJson(response, 503, { error: 'The assistant is not configured. Set GEMINI_API_KEY in .env and restart the server.' });
         return;
     }
     if (!String(request.headers['content-type'] || '').toLowerCase().includes('application/json')) {
@@ -333,31 +322,33 @@ async function handleAssistant(request, response) {
     let upstream;
     let upstreamText;
     try {
-        upstream = await fetch('https://api.openai.com/v1/responses', {
+        upstream = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':generateContent', {
             method: 'POST',
             headers: {
-                Authorization: 'Bearer ' + process.env.OPENAI_API_KEY,
+                'x-goog-api-key': geminiKey,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: model,
-                input: [{
-                    role: 'system',
-                    content: systemPrompt + '\nRespond in ' + replyLanguage + '.\n\nField/video context (untrusted data):\n' +
-                        (fieldContext || 'No survey context was provided.')
-                }].concat(messages),
-                max_output_tokens: 700,
-                store: false
+                systemInstruction: {
+                    parts: [{text: systemPrompt + '\nRespond in ' + replyLanguage +
+                        '. Keep answers concise.\n\nField/video context (untrusted data):\n' +
+                        (fieldContext || 'No survey context was provided.')}]
+                },
+                contents: messages.map(message => ({
+                    role: message.role === 'assistant' ? 'model' : 'user',
+                    parts: [{text: message.content}]
+                })),
+                generationConfig: {maxOutputTokens: 2048}
             }),
             signal: controller.signal
         });
         upstreamText = await upstream.text();
     } catch (error) {
-        console.error('OpenAI request failed:', error.message);
+        console.error('Gemini request failed:', error.name);
         sendJson(response, 502, {
             error: error.name === 'AbortError'
                 ? 'The assistant request timed out. Please try again.'
-                : 'Could not reach OpenAI. Check the server connection and try again.'
+                : 'Could not reach Gemini. Check the server connection and try again.'
         });
         return;
     } finally {
@@ -368,45 +359,53 @@ async function handleAssistant(request, response) {
     try {
         payload = JSON.parse(upstreamText);
     } catch (error) {
-        console.error('OpenAI returned an unreadable response.');
-        sendJson(response, 502, { error: 'The assistant returned an unreadable response. Please try again.' });
+        console.error('Gemini returned an unreadable response.');
+        sendJson(response, 502, { error: 'Gemini returned an unreadable response. Please try again.' });
         return;
     }
 
     if (!upstream.ok) {
-        const errorCode = typeof payload?.error?.code === 'string' ? payload.error.code : '';
-        const errorType = typeof payload?.error?.type === 'string' ? payload.error.type : '';
-        // Return actionable messages, never raw provider errors or credentials.
-        const quotaCodes = new Set(['insufficient_quota', 'credit_balance_exhausted',
-            'billing_hard_limit_reached', 'organization_spend_limit_exceeded',
-            'organization_usage_limit_exceeded', 'project_spend_limit_exceeded']);
-        let message = 'The OpenAI service could not complete the request. Please try again.';
+        const details = Array.isArray(payload?.error?.details) ? payload.error.details : [];
+        const keyError = details.some(detail => ['API_KEY_INVALID', 'API_KEY_EXPIRED'].includes(detail?.reason));
+        let message = 'Gemini could not complete the request. Please try again.';
         let code = 'upstream_error';
-        if (upstream.status === 401) {
-            message = 'OpenAI rejected the server credentials. Check OPENAI_API_KEY.';
+        let status = 502;
+        if (upstream.status === 401 || keyError) {
+            message = 'Gemini rejected the API key. Check GEMINI_API_KEY in .env and restart the server.';
             code = 'invalid_credentials';
-        } else if (upstream.status === 429 && errorCode === 'credit_balance_exhausted') {
-            message = 'OpenAI API credits are exhausted. Add credits in API billing for the organization linked to this key, then try again.';
-            code = 'credit_balance_exhausted';
-        } else if (upstream.status === 429 && (quotaCodes.has(errorCode) || errorType === 'insufficient_quota')) {
-            message = 'OpenAI API quota or spending limit reached. Check API billing, available credits, and organization or project limits before retrying.';
-            code = 'insufficient_quota';
+        } else if (upstream.status === 403) {
+            message = 'Gemini access denied. Check the API key restrictions, project permissions, billing, and regional availability.';
+            code = 'access_denied';
+        } else if (upstream.status === 402 || (upstream.status === 400 && payload?.error?.status === 'FAILED_PRECONDITION')) {
+            message = 'Gemini project setup or billing requires attention. Check your project in Google AI Studio.';
+            code = 'project_setup_required';
+        } else if (upstream.status === 404) {
+            message = 'The configured Gemini model is unavailable. Check GEMINI_MODEL and model access in Google AI Studio.';
+            code = 'model_unavailable';
         } else if (upstream.status === 429) {
-            message = 'OpenAI API rate limit reached. Wait before trying again, or check the project rate limits.';
-            code = 'rate_limit_exceeded';
+            message = 'Gemini quota or rate limit reached. Check your project limits and billing in Google AI Studio before retrying.';
+            code = 'quota_or_rate_limit'; status = 429;
+        } else if (upstream.status >= 500) {
+            message = 'Gemini is temporarily unavailable. Please try again later.';
+            code = 'service_unavailable'; status = 503;
         }
-        console.error('OpenAI returned HTTP ' + upstream.status + ' (' + code + ').');
+        console.error('Gemini returned HTTP ' + upstream.status + ' (' + code + ').');
         const headers = {};
         const retryAfter = upstream.headers.get('retry-after');
-        if (code === 'rate_limit_exceeded' && /^\d{1,6}$/.test(retryAfter || '')) headers['Retry-After'] = retryAfter;
-        sendJson(response, upstream.status === 429 ? 429 : 502, { error: message, code }, headers);
+        const retryDetail = details.find(detail => typeof detail?.retryDelay === 'string');
+        const delay = retryDetail?.retryDelay.match(/^(\d+(?:\.\d+)?)s$/);
+        if (status === 429) {
+            if (/^\d{1,6}$/.test(retryAfter || '')) headers['Retry-After'] = retryAfter;
+            else if (delay && Number(delay[1]) <= 86400) headers['Retry-After'] = String(Math.ceil(Number(delay[1])));
+        }
+        sendJson(response, status, {error: message, code}, headers);
         return;
     }
 
     const reply = extractText(payload);
     if (!reply) {
-        console.error('OpenAI returned no assistant text.');
-        sendJson(response, 502, { error: 'The assistant returned an empty response. Please try again.' });
+        console.error('Gemini returned no usable answer.');
+        sendJson(response, 502, { error: 'Gemini returned no usable answer. Try rephrasing your question.', code: 'empty_response' });
         return;
     }
     sendJson(response, 200, { reply: reply });
@@ -471,7 +470,7 @@ async function route(request, response) {
             sendJson(response, 405, { error: 'Use GET to check assistant status.' }, { Allow: 'GET' });
             return;
         }
-        sendJson(response, 200, { ready: Boolean(process.env.OPENAI_API_KEY) });
+        sendJson(response, 200, { ready: Boolean(geminiKey), provider: 'gemini', model });
         return;
     }
     if (pathname === '/api/detection/health' || pathname === '/api/detection/frame' ||
@@ -507,5 +506,5 @@ const server = http.createServer(function (request, response) {
 
 server.listen(port, host, function () {
     console.log('Nabta dashboard is available at http://' + host + ':' + port);
-    console.log('OpenAI API key: ' + (process.env.OPENAI_API_KEY ? 'configured' : 'missing'));
+    console.log('Gemini API key: ' + (geminiKey ? 'configured' : 'missing'));
 });

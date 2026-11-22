@@ -38,7 +38,7 @@
                 get('pest-diagnose').disabled = !pestReport || diagnosisBusy;
             } else {
                 get('pest-ai-diagnostic').textContent =
-                    'Set OPENAI_API_KEY on the Node server to enable AI diagnostics. Local model detection works without it.';
+                    'Set GEMINI_API_KEY on the Node server to enable AI diagnostics. Local model detection works without it.';
             }
         } catch (error) {
             assistantReady = false;
@@ -112,7 +112,7 @@
         get('pest-class-summary').appendChild(empty);
         get('pest-ai-diagnostic').textContent = assistantReady
             ? 'The AI receives model and frame-count summaries only; video frames stay on your machine.'
-            : 'AI diagnostics require OPENAI_API_KEY. Local model detection works without it.';
+            : 'AI diagnostics require GEMINI_API_KEY. Local model detection works without it.';
         get('pest-diagnose').disabled = true;
     }
     function updatePestReport(result) {

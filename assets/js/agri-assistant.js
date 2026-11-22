@@ -127,7 +127,7 @@
             setStatus('Assistant ready', 'ready');
         } else {
             setStatus('API key not configured', 'warning');
-            showError('Add OPENAI_API_KEY to the server environment and restart the Node server to enable chat.');
+            showError('Add GEMINI_API_KEY to the server environment and restart the Node server to enable chat.');
         }
     }
 
@@ -136,7 +136,7 @@
             return;
         }
         if (!apiReady) {
-            showError('The agriculture assistant is unavailable. Start the Node server with OPENAI_API_KEY configured.');
+            showError('The agriculture assistant is unavailable. Start the Node server with GEMINI_API_KEY configured.');
             return;
         }
 
@@ -233,7 +233,7 @@
     ]).then(function (results) {
         if (results[0].status === 'rejected') {
             setStatus('Start Node server to chat', 'error');
-            showError('The API connection failed. Run node server.js with OPENAI_API_KEY set, then open the dashboard from http://localhost:3000.');
+            showError('The API connection failed. Run node server.js with GEMINI_API_KEY set, then open the dashboard from http://localhost:3000.');
         }
         if (results[1].status === 'rejected') {
             dataStatusElement.textContent = 'Survey data unavailable';

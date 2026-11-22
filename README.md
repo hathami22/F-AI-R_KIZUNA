@@ -10,7 +10,7 @@ git clone --branch dashboard https://github.com/hathami22/F-AI-R_KIZUNA.git
 cd F-AI-R_KIZUNA
 ```
 
-Copy `.env.example` to `.env`, then set `OPENAI_API_KEY` in `.env` and start the dashboard:
+Copy `.env.example` to `.env`, then set `GEMINI_API_KEY` in `.env` and start the dashboard:
 ```powershell
 Copy-Item .env.example .env
 notepad .env
@@ -22,14 +22,21 @@ Existing environment variables take precedence over `.env` values. The local `.e
 file is ignored by Git and blocked from website downloads. `.env.example` contains
 only blank/example settings and is safe to commit.
 
-Then open `http://localhost:3000`. The server binds to `127.0.0.1` by default. `OPENAI_MODEL` can optionally select a different supported model; the default is `gpt-4.1-mini`. No API key is stored in the repository or sent to browser code.
+Then open `http://localhost:3000`. The server binds to `127.0.0.1` by default. `GEMINI_MODEL` can optionally select a different supported model; the default is `gemini-3.5-flash-lite`. No API key is stored in the repository or sent to browser code.
 
 The dashboard's non-AI pages can still be served with `python -m http.server 8000`, but the assistant API requires `node server.js`.
 
-The assistant distinguishes exhausted API credits/spending limits from temporary
-rate limits. `credit_balance_exhausted` requires adding credits to the API
-organization associated with the key. Waiting or restarting does not replenish
-credits. A temporary rate limit may include a `Retry-After` response header.
+The assistant uses Google's Gemini generateContent REST API with a configurable
+model (default: `gemini-3.5-flash-lite`). Create a Gemini key at
+https://aistudio.google.com/apikey, put it in `GEMINI_API_KEY` in `.env`, and restart
+Node. OpenAI keys are not used by this integration. The `/api/health` readiness flag
+indicates configuration, not a successful paid API call. Gemini quotas, billing,
+key restrictions and regional access are controlled by your Google project.
+
+Conversation history maps user/assistant messages to Gemini user/model turns.
+System instructions retain the field-context boundaries and selected response
+language. Empty/blocked replies and credential, model, quota and service errors
+produce actionable messages without exposing raw upstream errors or keys.
 
 ## Appearance
 
@@ -59,8 +66,8 @@ Language changes do not restart an active simulation or uploaded video.
 ## Project Pipeline
 
 The complete architecture diagram is available as
-[PNG](documentation/nabta-project-pipeline.png) and a
-[three-page PDF](documentation/nabta-project-pipeline.pdf). The PDF separates the
+[PNG](documentation/nabta-project-pipeline-gemini.png) and a
+[three-page PDF](documentation/nabta-project-pipeline-gemini.pdf). The PDF separates the
 implemented website/inference/synthetic simulation from planned robot hardware,
 real-field mapping and treatment validation. Regenerate the artifacts with
 `python tools/generate_pipeline.py` after installing `reportlab`, `pypdfium2`, and `pypdf`.
@@ -116,8 +123,8 @@ for this page, and the caterpillar checkpoint is optional for **Weed Detection**
 
 Open **Pest Video Diagnostics** from the sidebar, choose a video, and start detection.
 The report counts sampled frames and frame-level detections, not unique insects. The
-optional AI diagnostic sends only that compact report to the Node API/OpenAI; video
-frames are not sent to OpenAI. Configure `OPENAI_API_KEY` to enable it. This checkpoint
+optional AI diagnostic sends only that compact report to the Node API/Google Gemini; video
+frames are not sent to Google Gemini. Configure `GEMINI_API_KEY` to enable it. This checkpoint
 has one trained label (`caterpillar`) and its archive metadata declares AGPL-3.0; verify
 the applicable terms before redistributing the checkpoint.
 
@@ -139,7 +146,7 @@ the bundle. Images are processed in memory through the local inference service.
 
 ## Agriculture Assistant
 
-Open **Agriculture Assistant** from the sidebar to ask questions about the survey or general agricultural topics. The browser sends the conversation and a compact summary of the simulated survey to the local Node server, which forwards the request to OpenAI. Conversations are not stored by the dashboard. Verify AI suggestions against local conditions and regulations; they are not a crop diagnosis or pesticide-use instructions.
+Open **Agriculture Assistant** from the sidebar to ask questions about the survey or general agricultural topics. The browser sends the conversation and a compact summary of the simulated survey to the local Node server, which forwards the request to Google Gemini. Conversations are not stored by the dashboard. Verify AI suggestions against local conditions and regulations; they are not a crop diagnosis or pesticide-use instructions.
 
 ## Original Template Attribution
 ```

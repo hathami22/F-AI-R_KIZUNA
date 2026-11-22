@@ -14,8 +14,8 @@ from pypdf import PdfReader
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'documentation'
 OUT.mkdir(exist_ok=True)
-PDF = OUT / 'nabta-project-pipeline.pdf'
-PNG = OUT / 'nabta-project-pipeline.png'
+PDF = OUT / 'nabta-project-pipeline-gemini.pdf'
+PNG = OUT / 'nabta-project-pipeline-gemini.png'
 W, H = 1440, 1160
 GREEN, INK, MUTED, BORDER = '#104b31', '#142b20', '#52665b', '#d9e4dc'
 ORANGE, PALE, GROUND = '#b65c16', '#edf4ee', '#f6f8f5'
@@ -139,7 +139,7 @@ sections = [
     ('Local inference and website', [
         ('Uploaded video', 'Browser reads the local video and samples JPEG frames. Node proxies requests to FastAPI. YOLO returns boxes, labels, scores and stem keypoints where supported. The browser draws overlays and advances playback at inference speed, up to 12 sampled frames per video second.'),
         ('Plant health', 'User chooses a leaf photo and crop. Browser -> /api/plant-health/predict -> FastAPI /disease/predict -> classifier -> candidate condition, within-crop confidence, alternatives and uncertainty warning.'),
-        ('Optional agriculture assistant', 'Browser sends conversation and compact survey context to Node -> OpenAI. Pest diagnostic requests send a frame-count summary, not video frames. The API key stays on the server. Responses request the selected UI language.')]),
+        ('Optional agriculture assistant', 'Browser sends conversation and compact survey context to Node -> Google Gemini. Pest diagnostic requests send a frame-count summary, not video frames. The API key stays on the server. Responses request the selected UI language.')]),
     ('Survey storage and review', [
         ('Current data sources', 'Dashboard reads bundled CSV / GeoJSON or the latest completed synthetic simulation saved in browser localStorage. These are simulated surveys, not a connected robot telemetry feed.'),
         ('Exports and identity', 'GPS route CSV records time, latitude, longitude and actual / target speeds. Weed CSV records ID, species, position, status and treatment time. Density GeoJSON records count, surveyed area and density. Keep stable plant identities before claiming unique field counts.'),
