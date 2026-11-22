@@ -61,13 +61,18 @@
                         role: 'user',
                         content: 'Give a concise agricultural diagnostic for this video detection report. Clearly distinguish model labels from confirmed species or damage, explain that counts are repeated frame-level observations, and suggest safe visual follow-up checks. Do not prescribe pesticides or chemical use.'
                     }],
-                    fieldContext: JSON.stringify(pestReport)
+                    fieldContext: JSON.stringify(pestReport),
+                    language: window.NabtaI18n.language
                 })
             });
             const result = await response.json();
             if (!response.ok) throw new Error(result.error || 'The assistant could not create a diagnostic.');
             if (typeof result.reply !== 'string' || !result.reply.trim()) throw new Error('The assistant returned an empty diagnostic.');
-            if (token === diagnosisGeneration) get('pest-ai-diagnostic').textContent = result.reply;
+            if (token === diagnosisGeneration) {
+                get('pest-ai-diagnostic').dataset.generated = 'true';
+                get('pest-ai-diagnostic').dir = 'auto';
+                get('pest-ai-diagnostic').textContent = result.reply;
+            }
         } catch (error) {
             if (token === diagnosisGeneration) {
                 get('pest-ai-diagnostic').textContent = 'The AI diagnostic could not be generated.';
@@ -91,6 +96,7 @@
     }
     function resetPestReport() {
         if (!pestMode) return;
+        delete get('pest-ai-diagnostic').dataset.generated;
         diagnosisGeneration += 1;
         diagnosisBusy = false;
         pestFramesSampled = 0;

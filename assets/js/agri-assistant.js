@@ -39,6 +39,8 @@
 
         const content = document.createElement('p');
         content.className = 'assistant-message-content';
+        if (text.startsWith('Hello! I can help interpret')) content.classList.add('assistant-greeting');
+        content.dir = 'auto';
         content.textContent = text;
 
         message.appendChild(label);
@@ -104,11 +106,11 @@
         });
 
         summaryElement.replaceChildren();
-        addSummaryRow('Detections', summary.totalDetections.toLocaleString());
-        addSummaryRow('Treated', summary.treated.toLocaleString() + ' (' + summary.treatmentCoverage.toFixed(1) + '%)');
-        addSummaryRow('Crop protected', summary.cropProtected.toLocaleString());
-        addSummaryRow('Missed', summary.missed.toLocaleString());
-        addSummaryRow('Surveyed area', Math.round(summary.surveyedAreaM2).toLocaleString() + ' m²');
+        addSummaryRow('Detections', summary.totalDetections.toLocaleString(NabtaI18n.locale));
+        addSummaryRow('Treated', summary.treated.toLocaleString(NabtaI18n.locale) + ' (' + summary.treatmentCoverage.toFixed(1) + '%)');
+        addSummaryRow('Crop protected', summary.cropProtected.toLocaleString(NabtaI18n.locale));
+        addSummaryRow('Missed', summary.missed.toLocaleString(NabtaI18n.locale));
+        addSummaryRow('Surveyed area', Math.round(summary.surveyedAreaM2).toLocaleString(NabtaI18n.locale) + ' m²');
         addSummaryRow('Peak density', summary.peakDensity + ' weeds/m²');
         dataStatusElement.textContent = 'Survey data loaded';
         dataStatusElement.dataset.state = 'ready';
@@ -159,7 +161,8 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     messages: requestMessages,
-                    fieldContext: fieldContext
+                    fieldContext: fieldContext,
+                    language: window.NabtaI18n.language
                 })
             });
             let result;
@@ -218,7 +221,7 @@
 
     document.querySelectorAll('.assistant-prompt').forEach(function (button) {
         button.addEventListener('click', function () {
-            input.value = button.dataset.prompt || '';
+            input.value = NabtaI18n.t(button.dataset.prompt || '');
             sendButton.disabled = busy || !input.value.trim();
             submitMessage(input.value);
         });

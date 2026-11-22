@@ -2,7 +2,7 @@
     'use strict';
 
     function formatNumber(value, maximumFractionDigits) {
-        return new Intl.NumberFormat(undefined, {
+        return new Intl.NumberFormat(NabtaI18n.locale, {
             maximumFractionDigits: maximumFractionDigits === undefined ? 0 : maximumFractionDigits
         }).format(value);
     }

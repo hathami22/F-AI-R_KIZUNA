@@ -19,6 +19,30 @@ Then open `http://localhost:3000`. The server binds to `127.0.0.1` by default. `
 
 The dashboard's non-AI pages can still be served with `python -m http.server 8000`, but the assistant API requires `node server.js`.
 
+## Languages
+
+Use the language selector in the header to switch between English, Arabic, and
+Japanese. The choice is saved locally and shared across this site's pages and tabs.
+Arabic uses a right-to-left layout; maps, coordinates, video and numeric controls
+retain their spatial direction. The static-site localization adapter translates
+known interface messages and parameterized live statuses without changing API IDs,
+form values, raw API payloads, CSV exports, user chat text, or generated assistant prose.
+Assistant requests include an allowlisted response-language preference. Restart the
+Node server after upgrading to enable that server-side preference.
+
+Translations live in `assets/js/translations.js`; add English source messages and
+both translations there when adding UI. Unknown technical messages retain English.
+Language changes do not restart an active simulation or uploaded video.
+
+## Project Pipeline
+
+The complete architecture diagram is available as
+[PNG](documentation/nabta-project-pipeline.png) and a
+[three-page PDF](documentation/nabta-project-pipeline.pdf). The PDF separates the
+implemented website/inference/synthetic simulation from planned robot hardware,
+real-field mapping and treatment validation. Regenerate the artifacts with
+`python tools/generate_pipeline.py` after installing `reportlab`, `pypdfium2`, and `pypdf`.
+
 ## Survey Data
 
 The dashboard uses the simulated weed detections, GPS route, and field-density GeoJSON in `assets/data/`. These files contain elapsed survey time rather than calendar dates, so the date-range picker is a reporting-period control and does not filter the single simulated run.

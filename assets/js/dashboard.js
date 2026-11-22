@@ -339,21 +339,35 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const updateSelectedRange = function (selectedDates, dateStr, instance) {
             if (selectedDates.length === 2) {
-                const startStr = instance.formatDate(selectedDates[0], 'F j, Y');
-                const endStr = instance.formatDate(selectedDates[1], 'F j, Y');
+                const startStr = NabtaI18n.date(selectedDates[0], {year: 'numeric', month: 'long', day: 'numeric'});
+                const endStr = NabtaI18n.date(selectedDates[1], {year: 'numeric', month: 'long', day: 'numeric'});
                 selectedRangeText.textContent = `${startStr} - ${endStr}`;
             } else if (selectedDates.length === 1) {
-                selectedRangeText.textContent = instance.formatDate(selectedDates[0], 'F j, Y');
+                selectedRangeText.textContent = NabtaI18n.date(selectedDates[0], {year: 'numeric', month: 'long', day: 'numeric'});
             }
         };
 
-        flatpickr(datePickerTrigger, {
+        const picker = flatpickr(datePickerTrigger, {
             mode: 'range',
             dateFormat: 'Y-m-d',
             defaultDate: [rangeStart, rangeEnd],
             onReady: updateSelectedRange,
             onValueUpdate: updateSelectedRange
         });
+        function localizeCalendar() {
+            const locale = NabtaI18n.locale;
+            const day = (index, width) => new Intl.DateTimeFormat(locale, {weekday: width}).format(new Date(2026, 0, 4 + index));
+            const month = (index, width) => new Intl.DateTimeFormat(locale, {month: width}).format(new Date(2026, index, 1));
+            picker.set('locale', {
+                weekdays: {shorthand: Array.from({length: 7}, (_, i) => day(i, 'short')), longhand: Array.from({length: 7}, (_, i) => day(i, 'long'))},
+                months: {shorthand: Array.from({length: 12}, (_, i) => month(i, 'short')), longhand: Array.from({length: 12}, (_, i) => month(i, 'long'))},
+                firstDayOfWeek: 1,
+                rangeSeparator: ' - '
+            });
+            updateSelectedRange(picker.selectedDates, '', picker);
+        }
+        localizeCalendar();
+        window.addEventListener('nabta:languagechange', localizeCalendar);
     }
 
     // -----------------------------------------------------------------

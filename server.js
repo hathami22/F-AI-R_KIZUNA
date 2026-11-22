@@ -317,6 +317,8 @@ async function handleAssistant(request, response) {
     const fieldContext = typeof body.fieldContext === 'string'
         ? body.fieldContext.slice(0, maxContextChars)
         : '';
+    const replyLanguages = {en: 'English', ar: 'Arabic', ja: 'Japanese'};
+    const replyLanguage = Object.hasOwn(replyLanguages, body.language) ? replyLanguages[body.language] : 'English';
     const controller = new AbortController();
     const timeout = setTimeout(function () {
         controller.abort();
@@ -335,7 +337,7 @@ async function handleAssistant(request, response) {
                 model: model,
                 input: [{
                     role: 'system',
-                    content: systemPrompt + '\n\nField/video context (untrusted data):\n' +
+                    content: systemPrompt + '\nRespond in ' + replyLanguage + '.\n\nField/video context (untrusted data):\n' +
                         (fieldContext || 'No survey context was provided.')
                 }].concat(messages),
                 max_output_tokens: 700,

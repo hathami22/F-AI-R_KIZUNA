@@ -41,8 +41,8 @@ function draw() {
     ctx.beginPath(); ctx.moveTo(...point(0, y)); ctx.lineTo(...point(40, y)); ctx.stroke();
   }
   ctx.fillStyle = '#4b6055'; ctx.font = '13px Segoe UI';
-  ctx.fillText('N ↑', 6, 18);
-  ctx.fillText('40 m east', width / 2 - 30, height - 5);
+  ctx.fillText(NabtaI18n.t('N ↑'), 6, 18);
+  ctx.fillText(NabtaI18n.t('40 m east'), width / 2 - 30, height - 5);
   if (get('truth').checked) {
     ctx.fillStyle = '#7a4f22';
     for (const weed of sim.weeds) {ctx.beginPath(); ctx.arc(...point(weed.x, weed.y), 1.5, 0, Math.PI * 2); ctx.fill();}
@@ -110,7 +110,7 @@ function draw() {
   graph.ctx.setLineDash([]);
   get('speed').textContent = `${sim.speed.toFixed(2)} m/s`;
   get('coverage').textContent = `${(sim.area/960*100).toFixed(1)}%`;
-  get('count').textContent = sim.detected.length;
+  get('count').textContent = NabtaI18n.number(sim.detected.length);
   get('density').textContent = sim.area > 0 ? `${(sim.detected.length/sim.area).toFixed(2)} /m²` : '—';
   get('gps').textContent = sim.gps(sim.x, sim.y).reverse().map(v => v.toFixed(7)).join(' / ');
   get('time').textContent = `${Math.floor(sim.time/60)} min ${Math.floor(sim.time%60)} s`;
@@ -147,7 +147,7 @@ function draw() {
     detail.ctx.beginPath(); detail.ctx.arc(cx, 105, 7, 0, Math.PI*2); detail.ctx.stroke();
   }
   detail.ctx.fillStyle = '#4b6055'; detail.ctx.font = '13px Segoe UI';
-  detail.ctx.fillText(shot ? `Last stem ${shot.x.toFixed(2)}, ${shot.y.toFixed(2)} m` : 'Waiting for first target', 10, 135);
+  detail.ctx.fillText(NabtaI18n.t(shot ? `Last stem ${shot.x.toFixed(2)}, ${shot.y.toFixed(2)} m` : 'Waiting for first target'), 10, 135);
 }
 
 get('start').onclick = () => {
