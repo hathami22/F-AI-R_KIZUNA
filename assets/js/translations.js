@@ -354,6 +354,9 @@ MobileNetV3-Large ready · {0} · {1} crops	MobileNetV3-Large جاهز · {0} ·
 `.trim().split('\n').map(line => { const [en, ar, ja] = line.split('\t'); return [en, {ar, ja}]; }));
 
 Object.assign(window.NabtaMessages, Object.fromEntries(`
+OpenAI API credits are exhausted. Add credits in API billing for the organization linked to this key, then try again.	نفد رصيد OpenAI API. أضف رصيداً في فوترة API للمؤسسة المرتبطة بهذا المفتاح ثم حاول مجدداً.	OpenAI APIのクレジットを使い切りました。このキーに紐づく組織のAPI請求設定でクレジットを追加してから再試行してください。
+OpenAI API quota or spending limit reached. Check API billing, available credits, and organization or project limits before retrying.	تم بلوغ حصة OpenAI API أو حد الإنفاق. تحقق من فوترة API والرصيد وحدود المؤسسة أو المشروع قبل المحاولة.	OpenAI APIの利用枠または支出上限に達しました。再試行前にAPI請求設定、残高、組織・プロジェクトの上限を確認してください。
+OpenAI API rate limit reached. Wait before trying again, or check the project rate limits.	تم بلوغ حد معدل OpenAI API. انتظر قبل المحاولة أو تحقق من حدود معدل المشروع.	OpenAI APIのレート制限に達しました。しばらく待って再試行するか、プロジェクトのレート制限を確認してください。
 Switch to light mode	التبديل إلى الوضع الفاتح	ライトモードに切り替え
 Switch to dark mode	التبديل إلى الوضع الداكن	ダークモードに切り替え
 Leaf analysis complete.	اكتمل تحليل الورقة.	葉の分析が完了しました。

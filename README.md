@@ -26,6 +26,11 @@ Then open `http://localhost:3000`. The server binds to `127.0.0.1` by default. `
 
 The dashboard's non-AI pages can still be served with `python -m http.server 8000`, but the assistant API requires `node server.js`.
 
+The assistant distinguishes exhausted API credits/spending limits from temporary
+rate limits. `credit_balance_exhausted` requires adding credits to the API
+organization associated with the key. Waiting or restarting does not replenish
+credits. A temporary rate limit may include a `Retry-After` response header.
+
 ## Appearance
 
 Use the sun/moon button beside the language selector to switch between light and

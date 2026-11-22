@@ -374,13 +374,32 @@ async function handleAssistant(request, response) {
     }
 
     if (!upstream.ok) {
-        console.error('OpenAI returned HTTP ' + upstream.status + '.');
-        const message = upstream.status === 401
-            ? 'OpenAI rejected the server credentials. Check OPENAI_API_KEY.'
-            : upstream.status === 429
-                ? 'The OpenAI service is busy or its quota is exhausted. Please try again later.'
-                : 'The OpenAI service could not complete the request. Please try again.';
-        sendJson(response, 502, { error: message });
+        const errorCode = typeof payload?.error?.code === 'string' ? payload.error.code : '';
+        const errorType = typeof payload?.error?.type === 'string' ? payload.error.type : '';
+        // Return actionable messages, never raw provider errors or credentials.
+        const quotaCodes = new Set(['insufficient_quota', 'credit_balance_exhausted',
+            'billing_hard_limit_reached', 'organization_spend_limit_exceeded',
+            'organization_usage_limit_exceeded', 'project_spend_limit_exceeded']);
+        let message = 'The OpenAI service could not complete the request. Please try again.';
+        let code = 'upstream_error';
+        if (upstream.status === 401) {
+            message = 'OpenAI rejected the server credentials. Check OPENAI_API_KEY.';
+            code = 'invalid_credentials';
+        } else if (upstream.status === 429 && errorCode === 'credit_balance_exhausted') {
+            message = 'OpenAI API credits are exhausted. Add credits in API billing for the organization linked to this key, then try again.';
+            code = 'credit_balance_exhausted';
+        } else if (upstream.status === 429 && (quotaCodes.has(errorCode) || errorType === 'insufficient_quota')) {
+            message = 'OpenAI API quota or spending limit reached. Check API billing, available credits, and organization or project limits before retrying.';
+            code = 'insufficient_quota';
+        } else if (upstream.status === 429) {
+            message = 'OpenAI API rate limit reached. Wait before trying again, or check the project rate limits.';
+            code = 'rate_limit_exceeded';
+        }
+        console.error('OpenAI returned HTTP ' + upstream.status + ' (' + code + ').');
+        const headers = {};
+        const retryAfter = upstream.headers.get('retry-after');
+        if (code === 'rate_limit_exceeded' && /^\d{1,6}$/.test(retryAfter || '')) headers['Retry-After'] = retryAfter;
+        sendJson(response, upstream.status === 429 ? 429 : 502, { error: message, code }, headers);
         return;
     }
 
