@@ -3,3 +3,6 @@ models/**/*.pth
 inference/__pycache__/
 .playwright-cli/
 .taste-skill/
+.env
+.env.*
+!.env.example

@@ -6,6 +6,12 @@ const path = require('node:path');
 const { spawn } = require('node:child_process');
 
 const root = __dirname;
+// Load local settings before reading configuration. Existing environment values win.
+try {
+    process.loadEnvFile(path.join(root, '.env'));
+} catch (error) {
+    if (error.code !== 'ENOENT') throw error;
+}
 const host = process.env.HOST || '127.0.0.1';
 const port = Number(process.env.PORT || 3000);
 const model = process.env.OPENAI_MODEL || 'gpt-4.1-mini';

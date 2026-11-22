@@ -4,17 +4,24 @@ Nabta is a Bootstrap 5 admin dashboard based on the Spark Admin template.
 
 ## Getting Started
 
-The agriculture assistant uses a small Node.js API proxy. Install Node.js 18 or newer, then clone the repository:
+The agriculture assistant uses a small Node.js API proxy. Install Node.js 22 or newer, then clone the repository:
 ```
 git clone --branch dashboard https://github.com/hathami22/F-AI-R_KIZUNA.git
 cd F-AI-R_KIZUNA
 ```
 
-Set your OpenAI API key in the server environment and start the dashboard:
+Copy `.env.example` to `.env`, then set `OPENAI_API_KEY` in `.env` and start the dashboard:
 ```powershell
-$env:OPENAI_API_KEY = "<your OpenAI API key>"
+Copy-Item .env.example .env
+notepad .env
 node server.js
 ```
+If `.env` already exists, edit it directly instead of copying over it. The server loads
+`.env` from the project directory automatically; restart it after changing the file.
+Existing environment variables take precedence over `.env` values. The local `.env`
+file is ignored by Git and blocked from website downloads. `.env.example` contains
+only blank/example settings and is safe to commit.
+
 Then open `http://localhost:3000`. The server binds to `127.0.0.1` by default. `OPENAI_MODEL` can optionally select a different supported model; the default is `gpt-4.1-mini`. No API key is stored in the repository or sent to browser code.
 
 The dashboard's non-AI pages can still be served with `python -m http.server 8000`, but the assistant API requires `node server.js`.
